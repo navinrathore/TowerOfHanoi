@@ -199,3 +199,69 @@ def test_solve_iterative_api(client: TestClient) -> None:
     # Under minimum bounds check
     response_low = client.get("/api/solve/iterative?num_disks=2")
     assert response_low.status_code == 422
+
+
+def test_solve_search_api(client: TestClient) -> None:
+    """Verify search solver API with default and custom start states."""
+    # Standard call
+    response = client.get("/api/solve/search?num_disks=3")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["solver_type"] == "search"
+    assert data["num_disks"] == 3
+    assert len(data["moves"]) == 7
+
+    # Custom intermediate state call
+    response_custom = client.get(
+        "/api/solve/search?num_disks=3&state=%5B%5B3%2C2%5D%2C%5B1%5D%2C%5B%5D%5D"
+    )
+    assert response_custom.status_code == 200
+    data_custom = response_custom.json()
+    assert data_custom["solver_type"] == "search"
+    assert data_custom["num_disks"] == 3
+
+    # Invalid state format (larger disk on smaller disk)
+    response_invalid = client.get(
+        "/api/solve/search?num_disks=3&state=%5B%5B2%2C3%5D%2C%5B1%5D%2C%5B%5D%5D"
+    )
+    assert response_invalid.status_code == 400
+    assert "Invalid state parameter" in response_invalid.json()["detail"]
+
+
+def test_qlearning_api_endpoints(client: TestClient) -> None:
+    """Verify Q-learning agent training and solve API endpoints."""
+    # 1. Train agent
+    payload = {
+        "num_disks": 3,
+        "episodes": 200,
+        "alpha": 0.1,
+        "gamma": 0.9,
+        "epsilon": 0.2,
+    }
+    response_train = client.post("/api/solve/qlearning/train", json=payload)
+    assert response_train.status_code == 200
+    train_data = response_train.json()
+    assert train_data["num_disks"] == 3
+    assert train_data["episodes"] == 200
+    assert "metrics" in train_data
+    assert len(train_data["metrics"]["avg_rewards"]) > 0
+
+    # Invalid training parameter
+    payload_bad = {
+        "num_disks": 3,
+        "episodes": 50,  # Below limit of 100
+        "alpha": 0.1,
+        "gamma": 0.9,
+        "epsilon": 0.2,
+    }
+    response_train_bad = client.post("/api/solve/qlearning/train", json=payload_bad)
+    assert response_train_bad.status_code == 422
+
+    # 2. Solve with Q-learning (greedy path with fallback)
+    response_solve = client.get("/api/solve/qlearning?num_disks=3")
+    assert response_solve.status_code == 200
+    solve_data = response_solve.json()
+    assert solve_data["solver_type"] == "qlearning"
+    assert solve_data["num_disks"] == 3
+    assert len(solve_data["moves"]) > 0
+

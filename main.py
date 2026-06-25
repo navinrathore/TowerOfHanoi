@@ -12,6 +12,11 @@ import crud
 import models
 from database import Base, engine, get_db
 from solvers.classic import solve_iterative, solve_recursive
+from solvers.qlearning import QLearningAgent
+from solvers.search import solve_search
+
+# In-memory store for trained Q-learning agents
+TRAINED_Q_TABLES: dict[int, QLearningAgent] = {}
 
 # Create the SQLite database tables on startup
 Base.metadata.create_all(bind=engine)
@@ -103,6 +108,48 @@ class SolverSolutionResponse(BaseModel):
     )
 
 
+class QLearningTrainRequest(BaseModel):
+    """Schema for requesting a Q-learning agent training session."""
+
+    num_disks: int = Field(
+        ..., ge=3, le=8, description="Number of disks (3 to 8 inclusive)."
+    )
+    episodes: int = Field(
+        1000, ge=100, le=10000, description="Number of training episodes."
+    )
+    alpha: float = Field(0.1, ge=0.01, le=1.0, description="Learning rate (alpha).")
+    gamma: float = Field(0.9, ge=0.0, le=1.0, description="Discount factor (gamma).")
+    epsilon: float = Field(
+        0.2, ge=0.0, le=1.0, description="Initial exploration rate (epsilon)."
+    )
+
+
+class QLearningMetrics(BaseModel):
+    """Binned training metrics for visualization."""
+
+    episodes: list[int] = Field(..., description="Episode indices.")
+    avg_rewards: list[float] = Field(
+        ..., description="Binned average reward per episode."
+    )
+    avg_steps: list[float] = Field(
+        ..., description="Binned average steps to completion."
+    )
+    success_rates: list[float] = Field(
+        ..., description="Binned goal-completion success rates."
+    )
+    epsilons: list[float] = Field(..., description="Binned exploration rates.")
+
+
+class QLearningTrainResponse(BaseModel):
+    """Response schema returned after Q-agent training completes."""
+
+    num_disks: int
+    episodes: int
+    training_time_ms: float
+    final_success_rate: float
+    metrics: QLearningMetrics
+
+
 # --- Routes ---
 
 
@@ -189,6 +236,126 @@ async def get_solve_iterative(
     moves = solve_iterative(num_disks)
     return {
         "solver_type": "iterative",
+        "num_disks": num_disks,
+        "moves": moves,
+    }
+
+
+@app.get("/api/solve/search", response_model=SolverSolutionResponse)
+async def get_solve_search(
+    num_disks: int = Query(
+        ..., ge=3, le=8, description="Number of disks (3 to 8 inclusive)."
+    ),
+    state: str | None = Query(
+        None,
+        description="Optional current state encoded as JSON (e.g. [[3,2,1],[],[]])",
+    ),
+) -> dict[str, Any]:
+    """Compute step-by-step solution using the A* search solver."""
+    start_state = None
+    if state:
+        import json
+
+        try:
+            parsed = json.loads(state)
+            if not isinstance(parsed, list) or len(parsed) != 3:
+                raise ValueError("State must be a list of 3 pegs.")
+            # Convert list of lists to tuple of tuples
+            start_state = tuple(tuple(int(x) for x in peg) for peg in parsed)
+
+            # Validate start state disk count matches num_disks
+            total_disks = sum(len(peg) for peg in start_state)
+            if total_disks != num_disks:
+                raise ValueError(
+                    f"Disk count {total_disks} does not match {num_disks}."
+                )
+
+            # Validate that disks on each peg are in ascending order
+            for peg in start_state:
+                for i in range(len(peg) - 1):
+                    if peg[i] < peg[i + 1]:
+                        raise ValueError("Larger disk placed on top of smaller disk.")
+        except Exception as e:
+            raise HTTPException(
+                status_code=400, detail=f"Invalid state parameter: {e!s}"
+            ) from e
+
+    moves = solve_search(num_disks, start_state=start_state)
+    return {
+        "solver_type": "search",
+        "num_disks": num_disks,
+        "moves": moves,
+    }
+
+
+@app.post("/api/solve/qlearning/train", response_model=QLearningTrainResponse)
+async def post_train_qlearning(payload: QLearningTrainRequest) -> dict[str, Any]:
+    """Train a tabular Q-learning agent with the specified parameters."""
+    agent = QLearningAgent(payload.num_disks)
+    results = agent.train(
+        episodes=payload.episodes,
+        alpha=payload.alpha,
+        gamma=payload.gamma,
+        epsilon=payload.epsilon,
+    )
+    TRAINED_Q_TABLES[payload.num_disks] = agent
+    return results
+
+
+@app.get("/api/solve/qlearning", response_model=SolverSolutionResponse)
+async def get_solve_qlearning(
+    num_disks: int = Query(
+        ..., ge=3, le=8, description="Number of disks (3 to 8 inclusive)."
+    ),
+    state: str | None = Query(
+        None,
+        description="Optional current state encoded as JSON (e.g. [[3,2,1],[],[]])",
+    ),
+) -> dict[str, Any]:
+    """Compute step-by-step solution using the Q-learning solver (trained agent)."""
+    agent = TRAINED_Q_TABLES.get(num_disks)
+    if not agent:
+        # Train default agent on the fly if not already trained
+        agent = QLearningAgent(num_disks)
+        agent.train(episodes=1000, alpha=0.1, gamma=0.9, epsilon=0.2)
+        TRAINED_Q_TABLES[num_disks] = agent
+
+    start_state_str = "0" * num_disks
+    if state:
+        import json
+
+        try:
+            parsed = json.loads(state)
+            if not isinstance(parsed, list) or len(parsed) != 3:
+                raise ValueError("State must be a list of 3 pegs.")
+            # Convert list of lists to pegs structure
+            start_pegs = [[int(x) for x in peg] for peg in parsed]
+
+            # Validate start state disk count
+            total_disks = sum(len(peg) for peg in start_pegs)
+            if total_disks != num_disks:
+                raise ValueError(
+                    f"Disk count {total_disks} does not match {num_disks}."
+                )
+
+            # Validate order
+            for peg in start_pegs:
+                for i in range(len(peg) - 1):
+                    if peg[i] < peg[i + 1]:
+                        raise ValueError("Larger disk placed on top of smaller disk.")
+
+            # Convert pegs to state string representation
+            from solvers.qlearning import state_to_string
+
+            start_state_str = state_to_string(start_pegs, num_disks)
+        except Exception as e:
+            raise HTTPException(
+                status_code=400, detail=f"Invalid state parameter: {e!s}"
+            ) from e
+
+    moves = agent.solve(start_state_str)
+    return {
+        "solver_type": "qlearning",
         "num_disks": num_disks,
         "moves": moves,
     }

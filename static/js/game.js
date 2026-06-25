@@ -57,6 +57,20 @@ class HanoiGameClient {
         this.winTitle = document.getElementById('winTitle');
         this.winDescription = document.getElementById('winDescription');
 
+        // Q-learning configuration elements
+        this.qlearningConfigContainer = document.getElementById('qlearningConfigContainer');
+        this.qEpisodesInput = document.getElementById('qEpisodes');
+        this.qAlphaInput = document.getElementById('qAlpha');
+        this.qGammaInput = document.getElementById('qGamma');
+        this.qEpsilonInput = document.getElementById('qEpsilon');
+        this.trainQBtn = document.getElementById('trainQBtn');
+        this.qTrainingStatus = document.getElementById('qTrainingStatus');
+        this.qTrainingStatusText = document.getElementById('qTrainingStatusText');
+        this.qMetricsContainer = document.getElementById('qMetricsContainer');
+        this.qTrainTimeVal = document.getElementById('qTrainTimeVal');
+        this.qTrainSuccessVal = document.getElementById('qTrainSuccessVal');
+        this.qRewardSvgChart = document.getElementById('qRewardSvgChart');
+
         this.diskColors = [
             'from-rose-500 to-orange-500 text-rose-50 shadow-rose-500/20 border-rose-400/30', // Disk 8
             'from-orange-500 to-amber-500 text-orange-50 shadow-orange-500/20 border-orange-400/30', // Disk 7
@@ -83,6 +97,8 @@ class HanoiGameClient {
         this.stepForwardBtn.addEventListener('click', () => this.stepForward());
         this.stopBtn.addEventListener('click', () => this.stopVisualization(true));
         this.playbackSpeedSlider.addEventListener('input', (e) => this.handleSpeedChange(e));
+        this.solverTypeSelect.addEventListener('change', () => this.handleSolverTypeChange());
+        this.trainQBtn.addEventListener('click', () => this.trainQAgent());
 
         // Setup peg columns click and drag handlers
         document.querySelectorAll('.peg-column').forEach(column => {
@@ -460,15 +476,23 @@ class HanoiGameClient {
             clearInterval(this.timerInterval);
         }
 
-        // Initialize state to standard configuration
         this.numDisks = parseInt(this.diskCountSelect.value, 10);
-        this.pegs = [
-            Array.from({ length: this.numDisks }, (_, i) => this.numDisks - i),
-            [],
-            []
-        ];
+        this.solverType = this.solverTypeSelect.value;
+
+        const isSearchOrRL = (this.solverType === 'search' || this.solverType === 'qlearning');
+        const isAlreadySolved = (this.pegs[2].length === this.numDisks);
+
+        if (!isSearchOrRL || isAlreadySolved) {
+            // Reset to standard configuration
+            this.pegs = [
+                Array.from({ length: this.numDisks }, (_, i) => this.numDisks - i),
+                [],
+                []
+            ];
+            this.renderBoard();
+        }
+
         this.moveCount = 0;
-        this.renderBoard();
 
         // Update top stats panel
         this.moveCounter.textContent = '0';
@@ -479,12 +503,18 @@ class HanoiGameClient {
         this.gameStatusText.textContent = 'Solving...';
         this.gameStatusText.className = 'text-violet-400 font-semibold';
 
-        // Hide win overlay and select solver
+        // Hide win overlay
         this.winOverlay.classList.add('opacity-0', 'pointer-events-none');
-        this.solverType = this.solverTypeSelect.value;
+
+        // Build API URL
+        let url = `/api/solve/${this.solverType}?num_disks=${this.numDisks}`;
+        if (isSearchOrRL) {
+            const stateParam = encodeURIComponent(JSON.stringify(this.pegs));
+            url += `&state=${stateParam}`;
+        }
 
         try {
-            const response = await fetch(`/api/solve/${this.solverType}?num_disks=${this.numDisks}`);
+            const response = await fetch(url);
             if (response.ok) {
                 const data = await response.json();
                 this.visualMoves = data.moves;
@@ -712,6 +742,139 @@ class HanoiGameClient {
         } catch (err) {
             console.error('Network error saving solver run:', err);
         }
+    }
+
+    handleSolverTypeChange() {
+        const val = this.solverTypeSelect.value;
+        if (val === 'qlearning') {
+            this.qlearningConfigContainer.classList.remove('hidden');
+        } else {
+            this.qlearningConfigContainer.classList.add('hidden');
+        }
+    }
+
+    async trainQAgent() {
+        // Disable train button and show status
+        this.trainQBtn.disabled = true;
+        this.trainQBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        this.qTrainingStatus.classList.remove('hidden');
+        this.qMetricsContainer.classList.add('hidden');
+        this.qTrainingStatusText.textContent = "Training agent...";
+
+        const payload = {
+            num_disks: this.numDisks,
+            episodes: parseInt(this.qEpisodesInput.value, 10) || 1000,
+            alpha: parseFloat(this.qAlphaInput.value) || 0.1,
+            gamma: parseFloat(this.qGammaInput.value) || 0.9,
+            epsilon: parseFloat(this.qEpsilonInput.value) || 0.2
+        };
+
+        try {
+            const response = await fetch('/api/solve/qlearning/train', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                this.qTrainingStatus.classList.add('hidden');
+                
+                // Show metrics
+                this.qMetricsContainer.classList.remove('hidden');
+                this.qTrainTimeVal.textContent = `${data.training_time_ms.toFixed(0)}ms`;
+                this.qTrainSuccessVal.textContent = `${(data.final_success_rate * 100).toFixed(0)}%`;
+                
+                // Draw chart
+                this.drawRewardChart(data.metrics);
+            } else {
+                const errText = await response.text();
+                this.showError(`Training failed: ${errText}`);
+                this.qTrainingStatus.classList.add('hidden');
+            }
+        } catch (err) {
+            console.error('Error training agent:', err);
+            this.showError('Network error training agent.');
+            this.qTrainingStatus.classList.add('hidden');
+        } finally {
+            this.trainQBtn.disabled = false;
+            this.trainQBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+    }
+
+    drawRewardChart(metrics) {
+        const rewards = metrics.avg_rewards;
+        const episodes = metrics.episodes;
+        if (!rewards || rewards.length === 0) {
+            this.qRewardSvgChart.innerHTML = '<span class="text-[10px] text-slate-500 font-mono">No data.</span>';
+            return;
+        }
+
+        const width = 240;
+        const height = 96;
+        const padding = 6;
+        
+        // Find min and max for scaling
+        const minX = episodes[0];
+        const maxX = episodes[episodes.length - 1];
+        const minY = Math.min(...rewards);
+        const maxY = Math.max(...rewards);
+        
+        const scaleX = (x) => {
+            const range = maxX - minX;
+            return range === 0 ? padding : padding + ((x - minX) / range) * (width - 2 * padding);
+        };
+        
+        const scaleY = (y) => {
+            const range = maxY - minY;
+            return range === 0 ? height / 2 : height - padding - ((y - minY) / range) * (height - 2 * padding);
+        };
+        
+        // Build the line path
+        let pathD = "";
+        let areaD = "";
+        
+        for (let i = 0; i < episodes.length; i++) {
+            const px = scaleX(episodes[i]).toFixed(1);
+            const py = scaleY(rewards[i]).toFixed(1);
+            
+            if (i === 0) {
+                pathD += `M ${px} ${py}`;
+                areaD += `M ${px} ${scaleY(minY).toFixed(1)} L ${px} ${py}`;
+            } else {
+                pathD += ` L ${px} ${py}`;
+                areaD += ` L ${px} ${py}`;
+            }
+        }
+        
+        // Close area path for gradient fill
+        const lastX = scaleX(episodes[episodes.length - 1]).toFixed(1);
+        const baselineY = scaleY(minY).toFixed(1);
+        areaD += ` L ${lastX} ${baselineY} Z`;
+        
+        const svg = `
+            <svg width="100%" height="100%" viewBox="0 0 ${width} ${height}" class="overflow-visible">
+                <defs>
+                    <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.3"/>
+                        <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0.0"/>
+                    </linearGradient>
+                </defs>
+                <!-- Grid lines -->
+                <line x1="${padding}" y1="${scaleY(minY)}" x2="${width - padding}" y2="${scaleY(minY)}" stroke="#334155" stroke-dasharray="2" stroke-width="1" />
+                <line x1="${padding}" y1="${scaleY(maxY)}" x2="${width - padding}" y2="${scaleY(maxY)}" stroke="#334155" stroke-dasharray="2" stroke-width="1" />
+                
+                <!-- Area fill -->
+                <path d="${areaD}" fill="url(#chartGrad)" />
+                
+                <!-- Line path -->
+                <path d="${pathD}" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+        `;
+        
+        this.qRewardSvgChart.innerHTML = svg;
     }
 }
 
