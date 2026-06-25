@@ -4,13 +4,13 @@ The implementation is broken down into small, iterative, and independently testa
 
 ---
 
-## Phase 1 — Project Scaffolding & Hello FastAPI
+## Phase 1 — Project Scaffolding & Hello FastAPI (Completed)
 - Set up python environment and dependencies in `requirements.txt`.
 - Configure `main.py` with FastAPI and a basic `/` route returning JSON.
 - Add typecheck, formatting, and pytest boilerplate.
 - Establish strict type check rules.
 
-## Phase 2 — Tower of Hanoi Core Engine
+## Phase 2 — Tower of Hanoi Core Engine (Completed)
 - Create `game.py` containing the core game state representation (`HanoiGame`).
 - Implement disk movement logic with validation rules (e.g. cannot place a larger disk on a smaller one).
 - Write extensive unit tests in `tests/test_game.py` covering valid moves, invalid moves, and win conditions.

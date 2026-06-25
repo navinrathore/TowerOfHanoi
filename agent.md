@@ -35,4 +35,4 @@ Add comments for major architectural details
 The project has to be git maintainable. so do all the needed operations.
 
 ## Notes
-This CLAUDE.md was generated with TensorFeed.ai. Update this file as your project evolves: add new commands, refine style rules, and document conventions as they emerge.
+ Update this file as your project evolves: add new commands, refine style rules, and document conventions as they emerge.
