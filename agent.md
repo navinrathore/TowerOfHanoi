@@ -16,8 +16,12 @@ THe project implements the classic Tower Of Hanoi problem with different approac
 - `pip install -r requirements.txt`: Install dependencies
 - `python -m pytest`: Run the test suite
 - `python -m pytest -v`: Run tests with verbose output
+- `git status`: Check the status of the repository
+- `git add .`: Stage all modified and new files
+- `git commit -m "message"`: Commit changes with a descriptive message
 
 ## Code Style
+- Use Git to manage all features following the Spec-Driven Development roadmap.
 - Follow PEP 8 style guidelines
 - Use type hints for function signatures
 - Prefer f-strings for string formatting
