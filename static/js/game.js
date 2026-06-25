@@ -10,6 +10,18 @@ class HanoiGameClient {
         this.movesList = []; // list of {from_peg, to_peg}
         this.isPlaying = false;
 
+        // Auto-Solver state variables
+        this.isVisualizing = false;
+        this.visualMoves = [];
+        this.currentMoveIndex = -1;
+        this.isPlayingVisual = false;
+        this.playbackSpeed = 500; // ms per step
+        this.visualInterval = null;
+        this.visualStartTime = null;
+        this.visualTimeElapsed = 0;
+        this.visualTimerInterval = null;
+        this.solverType = null;
+
         // Element bindings
         this.diskCountSelect = document.getElementById('diskCount');
         this.startGameBtn = document.getElementById('startGameBtn');
@@ -27,6 +39,23 @@ class HanoiGameClient {
         this.refreshRunsBtn = document.getElementById('refreshRunsBtn');
         this.runsTableBody = document.getElementById('runsTableBody');
         this.boardContainer = document.getElementById('boardContainer');
+
+        // Solver bindings
+        this.solveBtn = document.getElementById('solveBtn');
+        this.solverTypeSelect = document.getElementById('solverType');
+        this.solverPlaybackControls = document.getElementById('solverPlaybackControls');
+        this.stepBackBtn = document.getElementById('stepBackBtn');
+        this.playPauseBtn = document.getElementById('playPauseBtn');
+        this.stepForwardBtn = document.getElementById('stepForwardBtn');
+        this.stopBtn = document.getElementById('stopBtn');
+        this.playbackSpeedSlider = document.getElementById('playbackSpeed');
+        this.speedValue = document.getElementById('speedValue');
+        this.stepProgressText = document.getElementById('stepProgressText');
+        this.stepProgressBar = document.getElementById('stepProgressBar');
+        this.playIcon = document.getElementById('playIcon');
+        this.pauseIcon = document.getElementById('pauseIcon');
+        this.winTitle = document.getElementById('winTitle');
+        this.winDescription = document.getElementById('winDescription');
 
         this.diskColors = [
             'from-rose-500 to-orange-500 text-rose-50 shadow-rose-500/20 border-rose-400/30', // Disk 8
@@ -47,6 +76,14 @@ class HanoiGameClient {
         this.restartBtn.addEventListener('click', () => this.startNewGame());
         this.refreshRunsBtn.addEventListener('click', () => this.loadRecentRuns());
         
+        // Solver event listeners
+        this.solveBtn.addEventListener('click', () => this.startVisualization());
+        this.playPauseBtn.addEventListener('click', () => this.togglePlayback());
+        this.stepBackBtn.addEventListener('click', () => this.stepBackward());
+        this.stepForwardBtn.addEventListener('click', () => this.stepForward());
+        this.stopBtn.addEventListener('click', () => this.stopVisualization(true));
+        this.playbackSpeedSlider.addEventListener('input', (e) => this.handleSpeedChange(e));
+
         // Setup peg columns click and drag handlers
         document.querySelectorAll('.peg-column').forEach(column => {
             column.addEventListener('click', (e) => this.handlePegClick(column, e));
@@ -63,6 +100,9 @@ class HanoiGameClient {
     }
 
     startNewGame() {
+        // Clean up visualizer if active
+        this.stopVisualization(false);
+
         this.numDisks = parseInt(this.diskCountSelect.value, 10);
         this.moveCount = 0;
         this.selectedPeg = null;
@@ -85,6 +125,15 @@ class HanoiGameClient {
         this.gameStatusText.textContent = 'Playing';
         this.gameStatusText.className = 'text-indigo-400 font-semibold';
         
+        // Reset overlay texts to manual defaults
+        if (this.winTitle) this.winTitle.textContent = "Victory Achieved!";
+        if (this.winDescription) {
+            this.winDescription.innerHTML = `Puzzle solved in <span id="winMoves" class="text-emerald-400 font-bold font-mono">0</span> moves and <span id="winTime" class="text-emerald-400 font-bold font-mono">0</span> seconds.`;
+            // Re-bind the elements that were inside winDescription
+            this.winMoves = document.getElementById('winMoves');
+            this.winTime = document.getElementById('winTime');
+        }
+
         // Hide overlay
         this.winOverlay.classList.add('opacity-0', 'pointer-events-none');
 
@@ -163,7 +212,7 @@ class HanoiGameClient {
 
     // CLICK-TO-MOVE INTERACTION HANDLERS
     handlePegClick(column, e) {
-        if (!this.isPlaying) return;
+        if (!this.isPlaying || this.isVisualizing) return;
         const pegIndex = parseInt(column.getAttribute('data-peg-index'), 10);
         
         if (this.selectedPeg === null) {
@@ -192,7 +241,7 @@ class HanoiGameClient {
 
     // DRAG AND DROP HANDLERS
     handleDragStart(pegIndex, e) {
-        if (!this.isPlaying) {
+        if (!this.isPlaying || this.isVisualizing) {
             e.preventDefault();
             return;
         }
@@ -401,6 +450,268 @@ class HanoiGameClient {
             `;
             this.runsTableBody.appendChild(row);
         });
+    }
+
+    // AUTO-SOLVER PLAYBACK & SIMULATION MECHANICS
+    async startVisualization() {
+        // Stop any active manual game
+        this.isPlaying = false;
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+        }
+
+        // Initialize state to standard configuration
+        this.numDisks = parseInt(this.diskCountSelect.value, 10);
+        this.pegs = [
+            Array.from({ length: this.numDisks }, (_, i) => this.numDisks - i),
+            [],
+            []
+        ];
+        this.moveCount = 0;
+        this.renderBoard();
+
+        // Update top stats panel
+        this.moveCounter.textContent = '0';
+        this.optimalMoves.textContent = (Math.pow(2, this.numDisks) - 1).toString();
+        this.efficiencyRate.textContent = '100%';
+        this.efficiencyRate.className = 'text-2xl font-black text-indigo-400 font-mono';
+        this.timeCounter.textContent = '00:00';
+        this.gameStatusText.textContent = 'Solving...';
+        this.gameStatusText.className = 'text-violet-400 font-semibold';
+
+        // Hide win overlay and select solver
+        this.winOverlay.classList.add('opacity-0', 'pointer-events-none');
+        this.solverType = this.solverTypeSelect.value;
+
+        try {
+            const response = await fetch(`/api/solve/${this.solverType}?num_disks=${this.numDisks}`);
+            if (response.ok) {
+                const data = await response.json();
+                this.visualMoves = data.moves;
+                this.isVisualizing = true;
+                this.currentMoveIndex = -1;
+                this.visualTimeElapsed = 0;
+                
+                // Show playback panel
+                this.solverPlaybackControls.classList.remove('hidden');
+                this.updatePlaybackUI();
+                
+                // Set status to playing visualization
+                this.gameStatusText.textContent = 'Simulating';
+                this.gameStatusText.className = 'text-violet-400 font-semibold animate-pulse';
+
+                // Automatically start playing
+                this.startPlayback();
+                this.startVisualTimer();
+            } else {
+                this.showError('Failed to retrieve solver steps from API.');
+                this.gameStatusText.textContent = 'Error';
+                this.gameStatusText.className = 'text-rose-400 font-semibold';
+            }
+        } catch (err) {
+            console.error('Error fetching solver solution:', err);
+            this.showError('Network error connecting to solver API.');
+            this.gameStatusText.textContent = 'Error';
+            this.gameStatusText.className = 'text-rose-400 font-semibold';
+        }
+    }
+
+    startPlayback() {
+        this.isPlayingVisual = true;
+        
+        // Toggle play/pause buttons
+        this.playIcon.classList.add('hidden');
+        this.pauseIcon.classList.remove('hidden');
+
+        if (this.visualInterval) clearInterval(this.visualInterval);
+        this.visualInterval = setInterval(() => {
+            if (this.currentMoveIndex < this.visualMoves.length - 1) {
+                this.stepForward();
+            } else {
+                this.handleVisualComplete();
+            }
+        }, this.playbackSpeed);
+    }
+
+    pausePlayback() {
+        this.isPlayingVisual = false;
+        
+        // Toggle play/pause buttons
+        this.playIcon.classList.remove('hidden');
+        this.pauseIcon.classList.add('hidden');
+
+        if (this.visualInterval) clearInterval(this.visualInterval);
+    }
+
+    togglePlayback() {
+        if (this.isPlayingVisual) {
+            this.pausePlayback();
+        } else {
+            this.startPlayback();
+        }
+    }
+
+    startVisualTimer() {
+        if (this.visualTimerInterval) clearInterval(this.visualTimerInterval);
+        this.visualTimerInterval = setInterval(() => {
+            if (!this.isPlayingVisual) return;
+            this.visualTimeElapsed++;
+            const minutes = Math.floor(this.visualTimeElapsed / 60).toString().padStart(2, '0');
+            const seconds = (this.visualTimeElapsed % 60).toString().padStart(2, '0');
+            this.timeCounter.textContent = `${minutes}:${seconds}`;
+        }, 1000);
+    }
+
+    stopVisualization(resetToManual = true) {
+        this.isVisualizing = false;
+        this.isPlayingVisual = false;
+
+        if (this.visualInterval) clearInterval(this.visualInterval);
+        if (this.visualTimerInterval) clearInterval(this.visualTimerInterval);
+
+        // Hide playback panel
+        this.solverPlaybackControls.classList.add('hidden');
+        this.playIcon.classList.remove('hidden');
+        this.pauseIcon.classList.add('hidden');
+
+        if (resetToManual) {
+            this.startNewGame();
+        }
+    }
+
+    stepForward() {
+        if (this.currentMoveIndex >= this.visualMoves.length - 1) return;
+
+        this.currentMoveIndex++;
+        const move = this.visualMoves[this.currentMoveIndex];
+
+        const sourceStack = this.pegs[move.from_peg];
+        const targetStack = this.pegs[move.to_peg];
+
+        if (sourceStack.length > 0) {
+            const disk = sourceStack.pop();
+            targetStack.push(disk);
+            this.moveCount++;
+            this.moveCounter.textContent = this.moveCount.toString();
+            this.renderBoard();
+        }
+
+        this.updatePlaybackUI();
+
+        // Check if finished
+        if (this.currentMoveIndex === this.visualMoves.length - 1) {
+            this.handleVisualComplete();
+        }
+    }
+
+    stepBackward() {
+        if (this.currentMoveIndex < 0) return;
+
+        // If playing, pause first
+        if (this.isPlayingVisual) {
+            this.pausePlayback();
+        }
+
+        const move = this.visualMoves[this.currentMoveIndex];
+        const sourceStack = this.pegs[move.from_peg];
+        const targetStack = this.pegs[move.to_peg];
+
+        if (targetStack.length > 0) {
+            const disk = targetStack.pop();
+            sourceStack.push(disk);
+            this.moveCount--;
+            this.moveCounter.textContent = this.moveCount.toString();
+            this.renderBoard();
+        }
+
+        this.currentMoveIndex--;
+        this.updatePlaybackUI();
+    }
+
+    updatePlaybackUI() {
+        const total = this.visualMoves.length;
+        const current = this.currentMoveIndex + 1;
+
+        this.stepProgressText.textContent = `${current} / ${total}`;
+        
+        const percentage = total > 0 ? (current / total) * 100 : 0;
+        this.stepProgressBar.style.width = `${percentage}%`;
+
+        // Update button states
+        if (this.currentMoveIndex < 0) {
+            this.stepBackBtn.disabled = true;
+            this.stepBackBtn.classList.add('opacity-40', 'cursor-not-allowed');
+        } else {
+            this.stepBackBtn.disabled = false;
+            this.stepBackBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+        }
+
+        if (this.currentMoveIndex >= this.visualMoves.length - 1) {
+            this.stepForwardBtn.disabled = true;
+            this.stepForwardBtn.classList.add('opacity-40', 'cursor-not-allowed');
+        } else {
+            this.stepForwardBtn.disabled = false;
+            this.stepForwardBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+        }
+    }
+
+    handleSpeedChange(e) {
+        this.playbackSpeed = parseInt(this.playbackSpeedSlider.value, 10);
+        this.speedValue.textContent = `${(this.playbackSpeed / 1000).toFixed(1)}s / step`;
+        
+        if (this.isPlayingVisual) {
+            // Restart interval to apply speed change instantly
+            this.startPlayback();
+        }
+    }
+
+    handleVisualComplete() {
+        this.pausePlayback();
+        if (this.visualTimerInterval) clearInterval(this.visualTimerInterval);
+
+        this.gameStatusText.textContent = 'Complete';
+        this.gameStatusText.className = 'text-emerald-400 font-semibold';
+
+        // Show completed state in Victory overlay
+        if (this.winTitle) this.winTitle.textContent = "Solver Completed!";
+        if (this.winDescription) {
+            this.winDescription.innerHTML = `Auto-solve using <strong>${this.solverType}</strong> solver finished in <span class="text-emerald-400 font-bold font-mono">${this.moveCount}</span> optimal moves and <span class="text-emerald-400 font-bold font-mono">${this.visualTimeElapsed}</span> seconds.`;
+        }
+        if (this.winMoves) this.winMoves.textContent = this.moveCount.toString();
+        if (this.winTime) this.winTime.textContent = this.visualTimeElapsed.toString();
+        
+        this.winOverlay.classList.remove('opacity-0', 'pointer-events-none');
+
+        // Log visualizer run statistics to DB
+        this.saveSolverRunToDB();
+    }
+
+    async saveSolverRunToDB() {
+        const payload = {
+            num_disks: this.numDisks,
+            solver_type: this.solverType,
+            start_time: new Date(new Date() - this.visualTimeElapsed * 1000).toISOString(),
+            end_time: new Date().toISOString(),
+            total_moves: this.moveCount,
+            moves: this.visualMoves.map(m => ({ from_peg: m.from_peg, to_peg: m.to_peg }))
+        };
+
+        try {
+            const response = await fetch('/api/runs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+            if (response.ok) {
+                this.loadRecentRuns();
+            } else {
+                console.error('Failed to log solver run:', await response.text());
+            }
+        } catch (err) {
+            console.error('Network error saving solver run:', err);
+        }
     }
 }
 

@@ -163,3 +163,39 @@ def test_get_recent_runs(client: TestClient, db_session: Session) -> None:
     assert data[0]["num_disks"] == 5
     assert data[0]["total_moves"] == 31
     assert data[0]["solver_type"] == "manual"
+
+
+def test_solve_recursive_api(client: TestClient) -> None:
+    """Verify recursive solver API validation and output."""
+    # Valid call
+    response = client.get("/api/solve/recursive?num_disks=3")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["solver_type"] == "recursive"
+    assert data["num_disks"] == 3
+    assert len(data["moves"]) == 7
+    assert data["moves"][0]["from_peg"] == 0
+    assert data["moves"][0]["to_peg"] == 2
+
+    # Under minimum bounds check
+    response_low = client.get("/api/solve/recursive?num_disks=2")
+    assert response_low.status_code == 422
+
+    # Over maximum bounds check
+    response_high = client.get("/api/solve/recursive?num_disks=9")
+    assert response_high.status_code == 422
+
+
+def test_solve_iterative_api(client: TestClient) -> None:
+    """Verify iterative solver API validation and output."""
+    # Valid call
+    response = client.get("/api/solve/iterative?num_disks=4")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["solver_type"] == "iterative"
+    assert data["num_disks"] == 4
+    assert len(data["moves"]) == 15
+
+    # Under minimum bounds check
+    response_low = client.get("/api/solve/iterative?num_disks=2")
+    assert response_low.status_code == 422

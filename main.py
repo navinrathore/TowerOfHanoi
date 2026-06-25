@@ -1,6 +1,7 @@
 from datetime import datetime
+from typing import Any
 
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -10,6 +11,7 @@ from sqlalchemy.orm import Session
 import crud
 import models
 from database import Base, engine, get_db
+from solvers.classic import solve_iterative, solve_recursive
 
 # Create the SQLite database tables on startup
 Base.metadata.create_all(bind=engine)
@@ -82,6 +84,25 @@ class GameRunResponse(BaseModel):
     moves: list[GameMoveResponse] = []
 
 
+class SolverMoveResponse(BaseModel):
+    """Schema for individual moves in a solver response."""
+
+    from_peg: int = Field(..., ge=0, le=2, description="Source peg index (0, 1, or 2).")
+    to_peg: int = Field(
+        ..., ge=0, le=2, description="Destination peg index (0, 1, or 2)."
+    )
+
+
+class SolverSolutionResponse(BaseModel):
+    """Response schema for a generated game solution."""
+
+    solver_type: str = Field(..., description="The type of solver used.")
+    num_disks: int = Field(..., ge=3, le=8, description="Number of disks.")
+    moves: list[SolverMoveResponse] = Field(
+        ..., description="Chronological list of solution moves."
+    )
+
+
 # --- Routes ---
 
 
@@ -141,3 +162,33 @@ async def read_recent_runs(
 ) -> list[models.GameRun]:
     """Retrieve the recent game runs, sorted by start time descending."""
     return crud.get_all_game_runs(db, limit=limit)
+
+
+@app.get("/api/solve/recursive", response_model=SolverSolutionResponse)
+async def get_solve_recursive(
+    num_disks: int = Query(
+        ..., ge=3, le=8, description="Number of disks (3 to 8 inclusive)."
+    ),
+) -> dict[str, Any]:
+    """Compute step-by-step solution using the recursive solver."""
+    moves = solve_recursive(num_disks)
+    return {
+        "solver_type": "recursive",
+        "num_disks": num_disks,
+        "moves": moves,
+    }
+
+
+@app.get("/api/solve/iterative", response_model=SolverSolutionResponse)
+async def get_solve_iterative(
+    num_disks: int = Query(
+        ..., ge=3, le=8, description="Number of disks (3 to 8 inclusive)."
+    ),
+) -> dict[str, Any]:
+    """Compute step-by-step solution using the iterative solver."""
+    moves = solve_iterative(num_disks)
+    return {
+        "solver_type": "iterative",
+        "num_disks": num_disks,
+        "moves": moves,
+    }

@@ -15,20 +15,20 @@ The implementation is broken down into small, iterative, and independently testa
 - Implement disk movement logic with validation rules (e.g. cannot place a larger disk on a smaller one).
 - Write extensive unit tests in `tests/test_game.py` covering valid moves, invalid moves, and win conditions.
 
-## Phase 3 — Database Schema & Setup
+## Phase 3 — Database Schema & Setup (Completed)
 - Set up SQLite connection via SQLAlchemy in `database.py` and models in `models.py`.
 - Define schemas for:
   - `GameRun`: Holds details about a completed/in-progress game (start/end times, disk count, solver type, total moves).
   - `GameMove`: Log of individual moves (from peg, to peg, move number, timestamp).
 - Implement functions to save/query game stats.
 
-## Phase 4 — Interactive Web UI (Playable Mode)
+## Phase 4 — Interactive Web UI (Playable Mode) (Completed)
 - Create base Jinja2 layouts with Tailwind CSS.
 - Build a game dashboard where players can select disk count (3 to 8 disks) and play manually.
 - Use simple drag-and-drop or click-to-move JavaScript interactions.
 - Record stats and persist game results to SQLite upon win.
 
-## Phase 5 — Classic Solvers
+## Phase 5 — Classic Solvers (Completed)
 - Implement Recursive and Iterative solvers in `solvers/classic.py`.
 - Expose APIs `/api/solve/recursive` and `/api/solve/iterative` that return the list of steps to solve a given configuration.
 - Implement UI visualization that plays the steps step-by-step with play/pause controls.
