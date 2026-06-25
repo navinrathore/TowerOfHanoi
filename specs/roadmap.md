@@ -33,12 +33,12 @@ The implementation is broken down into small, iterative, and independently testa
 - Expose APIs `/api/solve/recursive` and `/api/solve/iterative` that return the list of steps to solve a given configuration.
 - Implement UI visualization that plays the steps step-by-step with play/pause controls.
 
-## Phase 6 — Search-based Solver
+## Phase 6 — Search-based Solver (Completed)
 - Implement A* (or BFS) pathfinding solver in `solvers/search.py` to find the shortest path from any valid intermediate game state to the win state.
 - Expose search solver via `/api/solve/search`.
 - Integrate into the UI visualization.
 
-## Phase 7 — Reinforcement Learning (Q-learning) Solver
+## Phase 7 — Reinforcement Learning (Q-learning) Solver (Completed)
 - Implement a Q-learning agent in `solvers/qlearning.py`.
 - Model state representation (tuple of disk positions or string representation).
 - Model action space (moves between valid pegs: 0->1, 0->2, etc.).
@@ -46,13 +46,13 @@ The implementation is broken down into small, iterative, and independently testa
 - Provide API to trigger agent training session (setting episodes, alpha, gamma, epsilon).
 - Visual UI for Q-learning: see training progress, explore-vs-exploit rates, and watch the trained agent solve the game.
 
-## Phase 8 — History & Analytics Dashboard
+## Phase 8 — History & Analytics Dashboard (Completed)
 - Create `/dashboard` route showing aggregated statistics.
 - Display a leaderboard of fastest manual completions.
 - Compare solver efficiency (Recursive/Iterative vs A* vs Q-learning).
 - Render progress charts (e.g., Q-learning success rate / cumulative reward per episode).
 
-## Phase 9 — UI Polish & Accessibility
+## Phase 9 — UI Polish & Accessibility (Completed)
 - Add smooth transitions/animations for disk movements.
 - Make the interface mobile-responsive.
 - Add keyboard accessibility to move disks between rods.
