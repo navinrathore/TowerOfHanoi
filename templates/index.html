@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow flex flex-col gap-8">
+    
+    <!-- Top Grid: Game Interface & Stats -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Left & Center: Board and Controls (2/3 width on desktop) -->
+        <div class="lg:col-span-2 flex flex-col gap-6">
+            
+            <!-- Controls & Stats Bar -->
+            <div class="bg-slate-900/60 backdrop-blur-md border border-slate-800/60 rounded-2xl p-6 flex flex-wrap items-center justify-between gap-6 shadow-lg shadow-slate-950/20 panel-glow">
+                
+                <!-- Setup Controller -->
+                <div class="flex items-center space-x-4">
+                    <div>
+                        <label for="diskCount" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Disks</label>
+                        <select id="diskCount" class="bg-slate-800 border border-slate-700/60 rounded-xl px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all">
+                            <option value="3" selected>3 Disks (Easy)</option>
+                            <option value="4">4 Disks</option>
+                            <option value="5">5 Disks</option>
+                            <option value="6">6 Disks</option>
+                            <option value="7">7 Disks</option>
+                            <option value="8">8 Disks (Hard)</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end h-full">
+                        <button id="startGameBtn" class="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-sm font-semibold px-4 py-2 rounded-xl shadow-md shadow-indigo-600/10 hover:shadow-indigo-500/20 active:scale-95 transition-all mt-5">
+                            New Game
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Counters -->
+                <div class="flex items-center gap-6 sm:gap-10">
+                    <div class="text-center">
+                        <span class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Moves</span>
+                        <span id="moveCounter" class="text-2xl font-black text-white font-mono">0</span>
+                        <span class="text-xs text-slate-500 font-mono block">Optimal: <span id="optimalMoves">7</span></span>
+                    </div>
+                    <div class="h-10 w-px bg-slate-800/60"></div>
+                    <div class="text-center">
+                        <span class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Time</span>
+                        <span id="timeCounter" class="text-2xl font-black text-white font-mono">00:00</span>
+                        <span class="text-xs text-slate-500 font-mono block">Status: <span id="gameStatusText" class="text-slate-400">Idle</span></span>
+                    </div>
+                    <div class="h-10 w-px bg-slate-800/60"></div>
+                    <div class="text-center">
+                        <span class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Efficiency</span>
+                        <span id="efficiencyRate" class="text-2xl font-black text-indigo-400 font-mono">—</span>
+                        <span class="text-xs text-slate-500 font-mono block">Precision</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- The Hanoi Board Panel -->
+            <div id="boardContainer" class="bg-slate-900/60 backdrop-blur-md border border-slate-800/60 rounded-3xl p-8 flex flex-col justify-between min-h-[420px] shadow-2xl shadow-slate-950/40 relative panel-glow select-none">
+                
+                <!-- Status Toast/Overlay -->
+                <div id="validationFeedback" class="absolute top-4 left-1/2 -translate-x-1/2 bg-rose-500/90 text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg shadow-rose-950/30 opacity-0 pointer-events-none transition-all duration-300 z-20 flex items-center gap-2">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <span id="validationMsg">Invalid disk placement!</span>
+                </div>
+
+                <!-- Win Overlay -->
+                <div id="winOverlay" class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm rounded-3xl flex flex-col items-center justify-center gap-4 opacity-0 pointer-events-none transition-all duration-500 z-30">
+                    <div class="h-20 w-20 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 animate-bounce">
+                        <svg class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                    <div class="text-center">
+                        <h2 class="text-3xl font-extrabold text-white">Victory Achieved!</h2>
+                        <p class="text-slate-400 text-sm mt-1">Puzzle solved in <span id="winMoves" class="text-emerald-400 font-bold font-mono">0</span> moves and <span id="winTime" class="text-emerald-400 font-bold font-mono">0</span> seconds.</p>
+                    </div>
+                    <div class="flex space-x-3 mt-2">
+                        <button id="restartBtn" class="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-lg transition duration-200">
+                            Play Again
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Three Rods Container -->
+                <div class="flex-grow flex items-end justify-around relative pt-12 pb-4">
+                    
+                    <!-- Rod 0 (Source) -->
+                    <div class="peg-column flex flex-col items-center w-full h-full relative cursor-pointer" data-peg-index="0">
+                        <!-- Peg visual line -->
+                        <div class="w-2.5 h-64 bg-gradient-to-b from-slate-700 to-slate-800 rounded-full shadow-inner absolute bottom-0 left-1/2 -translate-x-1/2 transition-colors duration-200 peg-shaft z-0"></div>
+                        <!-- Peg Disks stack area -->
+                        <div class="disk-stack flex flex-col-reverse items-center justify-start h-64 pb-1 w-full gap-1.5 z-10" id="stack-0">
+                            <!-- Disks dynamically generated in game.js -->
+                        </div>
+                    </div>
+
+                    <!-- Rod 1 (Auxiliary) -->
+                    <div class="peg-column flex flex-col items-center w-full h-full relative cursor-pointer" data-peg-index="1">
+                        <!-- Peg visual line -->
+                        <div class="w-2.5 h-64 bg-gradient-to-b from-slate-700 to-slate-800 rounded-full shadow-inner absolute bottom-0 left-1/2 -translate-x-1/2 transition-colors duration-200 peg-shaft z-0"></div>
+                        <!-- Peg Disks stack area -->
+                        <div class="disk-stack flex flex-col-reverse items-center justify-start h-64 pb-1 w-full gap-1.5 z-10" id="stack-1">
+                            <!-- Disks dynamically generated in game.js -->
+                        </div>
+                    </div>
+
+                    <!-- Rod 2 (Target) -->
+                    <div class="peg-column flex flex-col items-center w-full h-full relative cursor-pointer" data-peg-index="2">
+                        <!-- Peg visual line -->
+                        <div class="w-2.5 h-64 bg-gradient-to-b from-slate-700 to-slate-800 rounded-full shadow-inner absolute bottom-0 left-1/2 -translate-x-1/2 transition-colors duration-200 peg-shaft z-0"></div>
+                        <!-- Peg Disks stack area -->
+                        <div class="disk-stack flex flex-col-reverse items-center justify-start h-64 pb-1 w-full gap-1.5 z-10" id="stack-2">
+                            <!-- Disks dynamically generated in game.js -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Shared Peg Board Base Platform -->
+                <div class="w-full h-4 bg-gradient-to-r from-slate-800 to-slate-700 rounded-full shadow-lg border-b border-slate-650/40 relative z-10 flex justify-around px-4">
+                    <div class="text-[9px] font-bold text-slate-500 uppercase tracking-widest translate-y-4">Peg A</div>
+                    <div class="text-[9px] font-bold text-slate-500 uppercase tracking-widest translate-y-4">Peg B</div>
+                    <div class="text-[9px] font-bold text-slate-500 uppercase tracking-widest translate-y-4">Peg C</div>
+                </div>
+            </div>
+
+            <!-- Manual Instructions Info Card -->
+            <div class="bg-slate-900/30 border border-slate-800/40 rounded-2xl p-5 text-sm text-slate-400">
+                <span class="block font-bold text-slate-300 mb-2">Instructions & Rules:</span>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li>Only <span class="text-indigo-400 font-semibold">one disk</span> can be moved at a time.</li>
+                    <li>Each move consists of taking the upper disk from one stack and placing it on top of another stack.</li>
+                    <li>No disk may be placed on top of a <span class="text-rose-400 font-semibold">smaller disk</span>.</li>
+                    <li><strong class="text-indigo-400">Interaction:</strong> Drag-and-drop the disks, or click the starting peg and then the target peg to move.</li>
+                </ul>
+            </div>
+
+        </div>
+
+        <!-- Right Side: Leaderboard & Analytics (1/3 width on desktop) -->
+        <div class="flex flex-col gap-6">
+            
+            <!-- Leaderboard Card -->
+            <div class="bg-slate-900/60 backdrop-blur-md border border-slate-800/60 rounded-3xl p-6 shadow-xl shadow-slate-950/30 flex flex-col gap-4 panel-glow">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div class="flex items-center space-x-2">
+                        <svg class="h-5 w-5 text-indigo-400 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.952 11.952 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        <h2 class="text-lg font-bold text-white tracking-tight">Recent Game Runs</h2>
+                    </div>
+                    <button id="refreshRunsBtn" class="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition duration-150 flex items-center space-x-1 cursor-pointer">
+                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H18.5" />
+                        </svg>
+                        <span>Refresh</span>
+                    </button>
+                </div>
+
+                <!-- Leaderboard Table -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-800">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="px-3 py-2 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Run</th>
+                                <th scope="col" class="px-3 py-2 text-left text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Disks</th>
+                                <th scope="col" class="px-3 py-2 class text-left text-xs font-bold text-slate-500 uppercase tracking-wider text-center">Moves</th>
+                                <th scope="col" class="px-3 py-2 text-left text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="runsTableBody" class="divide-y divide-slate-800/40">
+                            {% if runs %}
+                                {% for run in runs %}
+                                <tr class="hover:bg-slate-800/30 transition-colors duration-150">
+                                    <td class="px-3 py-3 whitespace-nowrap text-sm font-semibold text-slate-300">#{{ run.id }}</td>
+                                    <td class="px-3 py-3 whitespace-nowrap text-sm text-indigo-400 text-center font-bold">{{ run.num_disks }}</td>
+                                    <td class="px-3 py-3 whitespace-nowrap text-sm text-slate-300 text-center font-mono font-medium">{{ run.total_moves }}</td>
+                                    <td class="px-3 py-3 whitespace-nowrap text-sm text-slate-400 text-right font-mono">
+                                        {% if run.end_time %}
+                                            {{ (run.end_time - run.start_time).total_seconds() | int }}s
+                                        {% else %}
+                                            —
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr id="noRunsFallbackRow">
+                                    <td colspan="4" class="px-3 py-8 text-center text-xs text-slate-500 font-mono">
+                                        No runs recorded yet.<br>Complete a game to log stats!
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Game JS Logic Script -->
+<script src="/static/js/game.js"></script>
+{% endblock %}

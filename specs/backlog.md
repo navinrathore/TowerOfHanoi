@@ -12,3 +12,6 @@ This document tracks future feature enhancements, design iterations, and databas
   - Log reason for failures or mid-game resets if a user starts a run but cancels/fails it.
 - **Detailed Solver Metrics**:
   - Track metrics like peak memory usage, CPU/GPU training time, or number of states explored.
+- **Live Move Logging**:
+  - Transition from batch logging at the end of a game run to real-time live logging of moves (sending a POST request on every valid move) to allow tracing of active in-progress game states.
+
