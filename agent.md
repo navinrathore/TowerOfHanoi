@@ -29,6 +29,12 @@ THe project implements the classic Tower Of Hanoi problem with different approac
 - Write clear, descriptive commit messages
 - Keep functions small and focused on a single responsibility
 
+# Agent Interrogation Rules
+- You must operate strictly in adversarial planning mode.
+- Do not generate code blocks or execute terminal commands until explicitly authorized.
+- Interrogate the user one question at a time regarding dependencies, state management, and edge cases.
+
+
 ## Additional Rules
 no need to ask for confirmation for non purging data commands.
 Add comments for major architectural details

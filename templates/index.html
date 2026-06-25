@@ -83,35 +83,38 @@
                     </div>
                 </div>
 
+                <!-- Screen reader accessibility announcer -->
+                <div id="ariaAnnouncer" class="sr-only" aria-live="polite"></div>
+
                 <!-- Three Rods Container -->
                 <div class="flex-grow flex items-end justify-around relative pt-12 pb-4">
                     
                     <!-- Rod 0 (Source) -->
-                    <div class="peg-column flex flex-col items-center w-full h-full relative cursor-pointer" data-peg-index="0">
+                    <div class="peg-column flex flex-col items-center w-full h-full relative cursor-pointer focus:outline-none" data-peg-index="0" tabindex="0" role="button" aria-label="Peg A: Source stack">
                         <!-- Peg visual line -->
-                        <div class="w-2.5 h-64 bg-gradient-to-b from-slate-700 to-slate-800 rounded-full shadow-inner absolute bottom-0 left-1/2 -translate-x-1/2 transition-colors duration-200 peg-shaft z-0"></div>
+                        <div class="w-2.5 h-44 sm:h-64 bg-gradient-to-b from-slate-700 to-slate-800 rounded-full shadow-inner absolute bottom-0 left-1/2 -translate-x-1/2 transition-colors duration-200 peg-shaft z-0"></div>
                         <!-- Peg Disks stack area -->
-                        <div class="disk-stack flex flex-col-reverse items-center justify-start h-64 pb-1 w-full gap-1.5 z-10" id="stack-0">
+                        <div class="disk-stack flex flex-col-reverse items-center justify-start h-44 sm:h-64 pb-1 w-full gap-1.5 z-10" id="stack-0">
                             <!-- Disks dynamically generated in game.js -->
                         </div>
                     </div>
 
                     <!-- Rod 1 (Auxiliary) -->
-                    <div class="peg-column flex flex-col items-center w-full h-full relative cursor-pointer" data-peg-index="1">
+                    <div class="peg-column flex flex-col items-center w-full h-full relative cursor-pointer focus:outline-none" data-peg-index="1" tabindex="0" role="button" aria-label="Peg B: Auxiliary stack">
                         <!-- Peg visual line -->
-                        <div class="w-2.5 h-64 bg-gradient-to-b from-slate-700 to-slate-800 rounded-full shadow-inner absolute bottom-0 left-1/2 -translate-x-1/2 transition-colors duration-200 peg-shaft z-0"></div>
+                        <div class="w-2.5 h-44 sm:h-64 bg-gradient-to-b from-slate-700 to-slate-800 rounded-full shadow-inner absolute bottom-0 left-1/2 -translate-x-1/2 transition-colors duration-200 peg-shaft z-0"></div>
                         <!-- Peg Disks stack area -->
-                        <div class="disk-stack flex flex-col-reverse items-center justify-start h-64 pb-1 w-full gap-1.5 z-10" id="stack-1">
+                        <div class="disk-stack flex flex-col-reverse items-center justify-start h-44 sm:h-64 pb-1 w-full gap-1.5 z-10" id="stack-1">
                             <!-- Disks dynamically generated in game.js -->
                         </div>
                     </div>
 
                     <!-- Rod 2 (Target) -->
-                    <div class="peg-column flex flex-col items-center w-full h-full relative cursor-pointer" data-peg-index="2">
+                    <div class="peg-column flex flex-col items-center w-full h-full relative cursor-pointer focus:outline-none" data-peg-index="2" tabindex="0" role="button" aria-label="Peg C: Target stack">
                         <!-- Peg visual line -->
-                        <div class="w-2.5 h-64 bg-gradient-to-b from-slate-700 to-slate-800 rounded-full shadow-inner absolute bottom-0 left-1/2 -translate-x-1/2 transition-colors duration-200 peg-shaft z-0"></div>
+                        <div class="w-2.5 h-44 sm:h-64 bg-gradient-to-b from-slate-700 to-slate-800 rounded-full shadow-inner absolute bottom-0 left-1/2 -translate-x-1/2 transition-colors duration-200 peg-shaft z-0"></div>
                         <!-- Peg Disks stack area -->
-                        <div class="disk-stack flex flex-col-reverse items-center justify-start h-64 pb-1 w-full gap-1.5 z-10" id="stack-2">
+                        <div class="disk-stack flex flex-col-reverse items-center justify-start h-44 sm:h-64 pb-1 w-full gap-1.5 z-10" id="stack-2">
                             <!-- Disks dynamically generated in game.js -->
                         </div>
                     </div>

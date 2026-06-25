@@ -21,6 +21,7 @@ class HanoiGameClient {
         this.visualTimeElapsed = 0;
         this.visualTimerInterval = null;
         this.solverType = null;
+        this.solverComputeTime = 0.0;
 
         // Element bindings
         this.diskCountSelect = document.getElementById('diskCount');
@@ -100,15 +101,48 @@ class HanoiGameClient {
         this.solverTypeSelect.addEventListener('change', () => this.handleSolverTypeChange());
         this.trainQBtn.addEventListener('click', () => this.trainQAgent());
 
-        // Setup peg columns click and drag handlers
+        // Setup peg columns click, drag, and keyboard handlers
         document.querySelectorAll('.peg-column').forEach(column => {
             column.addEventListener('click', (e) => this.handlePegClick(column, e));
+            
+            // Keyboard event handlers
+            column.addEventListener('keydown', (e) => {
+                if (!this.isPlaying || this.isVisualizing) return;
+                const pegIndex = parseInt(column.getAttribute('data-peg-index'), 10);
+                
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.selectPegAction(pegIndex);
+                } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    const nextPegIndex = (pegIndex + 1) % 3;
+                    document.querySelectorAll('.peg-column')[nextPegIndex].focus();
+                } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    const prevPegIndex = (pegIndex - 1 + 3) % 3;
+                    document.querySelectorAll('.peg-column')[prevPegIndex].focus();
+                }
+            });
             
             // Drag and drop event listeners
             column.addEventListener('dragover', (e) => this.handleDragOver(column, e));
             column.addEventListener('dragenter', (e) => this.handleDragEnter(column, e));
             column.addEventListener('dragleave', (e) => this.handleDragLeave(column, e));
             column.addEventListener('drop', (e) => this.handleDrop(column, e));
+        });
+
+        // Document keydown hotkeys (1, 2, 3)
+        document.addEventListener('keydown', (e) => {
+            if (!this.isPlaying || this.isVisualizing) return;
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+            
+            if (e.key === '1') {
+                this.selectPegAction(0);
+            } else if (e.key === '2') {
+                this.selectPegAction(1);
+            } else if (e.key === '3') {
+                this.selectPegAction(2);
+            }
         });
 
         // Initialize state on page load
@@ -181,12 +215,20 @@ class HanoiGameClient {
             stackContainer.innerHTML = '';
             
             const currentStack = this.pegs[p];
+            const pegColumn = document.querySelector(`.peg-column[data-peg-index="${p}"]`);
+            if (pegColumn) {
+                const disksText = currentStack.length > 0 
+                    ? `contains ${currentStack.length} disks: size ${currentStack.join(', ')}`
+                    : 'empty';
+                pegColumn.setAttribute('aria-label', `Peg ${String.fromCharCode(65 + p)}: ${disksText}`);
+            }
+
             currentStack.forEach((diskSize, index) => {
                 const isTopDisk = (index === currentStack.length - 1);
                 const diskEl = document.createElement('div');
                 
-                // Base classes for the disk
-                diskEl.className = 'h-7 rounded-lg flex items-center justify-center font-bold text-xs shadow-md border select-none disk-transition z-10';
+                // Base classes for the disk (using responsive h-5 sm:h-7 for mobile)
+                diskEl.className = 'h-5 sm:h-7 rounded-lg flex items-center justify-center font-bold text-xs shadow-md border select-none disk-transition z-10';
                 
                 // Color gradient assignment (smaller disks map to colors from smallest index list)
                 const colorIdx = this.diskColors.length - 1 - (this.numDisks - diskSize);
@@ -230,29 +272,7 @@ class HanoiGameClient {
     handlePegClick(column, e) {
         if (!this.isPlaying || this.isVisualizing) return;
         const pegIndex = parseInt(column.getAttribute('data-peg-index'), 10);
-        
-        if (this.selectedPeg === null) {
-            // Select source
-            if (this.pegs[pegIndex].length > 0) {
-                this.selectedPeg = pegIndex;
-                this.renderBoard();
-            }
-        } else {
-            // Source is already selected, select target
-            const from = this.selectedPeg;
-            const to = pegIndex;
-            
-            if (from === to) {
-                // Cancel selection
-                this.selectedPeg = null;
-                this.renderBoard();
-            } else {
-                // Attempt move
-                const success = this.attemptMove(from, to);
-                this.selectedPeg = null;
-                this.renderBoard();
-            }
-        }
+        this.selectPegAction(pegIndex);
     }
 
     // DRAG AND DROP HANDLERS
@@ -317,6 +337,7 @@ class HanoiGameClient {
         
         if (sourceStack.length === 0) {
             this.showError('Source peg has no disks!');
+            this.announceAria('Invalid move: Source peg has no disks!');
             return false;
         }
         
@@ -325,23 +346,26 @@ class HanoiGameClient {
         
         if (targetTopDisk && targetTopDisk < movingDisk) {
             this.showError('Cannot place larger disk on smaller disk!');
+            this.announceAria('Invalid move: Cannot place larger disk on smaller disk!');
             return false;
         }
         
-        // Execute move
-        sourceStack.pop();
-        targetStack.push(movingDisk);
-        this.moveCount++;
-        this.movesList.push({ from_peg: from, to_peg: to });
-        
-        // Update stats
-        this.moveCounter.textContent = this.moveCount.toString();
-        this.updateEfficiency();
-        
-        // Check win condition (all disks on Peg 2)
-        if (this.pegs[2].length === this.numDisks) {
-            this.handleWin();
-        }
+        // Execute move with FLIP slide animation
+        this.animateMove(from, to, movingDisk, () => {
+            sourceStack.pop();
+            targetStack.push(movingDisk);
+            this.moveCount++;
+            this.movesList.push({ from_peg: from, to_peg: to });
+            
+            this.moveCounter.textContent = this.moveCount.toString();
+            this.updateEfficiency();
+            
+            this.announceAria(`Moved disk ${movingDisk} from Peg ${String.fromCharCode(65 + from)} to Peg ${String.fromCharCode(65 + to)}.`);
+
+            if (this.pegs[2].length === this.numDisks) {
+                this.handleWin();
+            }
+        });
         
         return true;
     }
@@ -518,6 +542,7 @@ class HanoiGameClient {
             if (response.ok) {
                 const data = await response.json();
                 this.visualMoves = data.moves;
+                this.solverComputeTime = data.compute_time_ms || 0.0;
                 this.isVisualizing = true;
                 this.currentMoveIndex = -1;
                 this.visualTimeElapsed = 0;
@@ -619,11 +644,14 @@ class HanoiGameClient {
         const targetStack = this.pegs[move.to_peg];
 
         if (sourceStack.length > 0) {
-            const disk = sourceStack.pop();
-            targetStack.push(disk);
-            this.moveCount++;
-            this.moveCounter.textContent = this.moveCount.toString();
-            this.renderBoard();
+            const disk = sourceStack[sourceStack.length - 1];
+            this.animateMove(move.from_peg, move.to_peg, disk, () => {
+                sourceStack.pop();
+                targetStack.push(disk);
+                this.moveCount++;
+                this.moveCounter.textContent = this.moveCount.toString();
+            });
+            this.announceAria(`Visualizer: Moved disk ${disk} from Peg ${String.fromCharCode(65 + move.from_peg)} to Peg ${String.fromCharCode(65 + move.to_peg)}.`);
         }
 
         this.updatePlaybackUI();
@@ -647,11 +675,14 @@ class HanoiGameClient {
         const targetStack = this.pegs[move.to_peg];
 
         if (targetStack.length > 0) {
-            const disk = targetStack.pop();
-            sourceStack.push(disk);
-            this.moveCount--;
-            this.moveCounter.textContent = this.moveCount.toString();
-            this.renderBoard();
+            const disk = targetStack[targetStack.length - 1];
+            this.animateMove(move.to_peg, move.from_peg, disk, () => {
+                targetStack.pop();
+                sourceStack.push(disk);
+                this.moveCount--;
+                this.moveCounter.textContent = this.moveCount.toString();
+            });
+            this.announceAria(`Visualizer step back: Moved disk ${disk} back to Peg ${String.fromCharCode(65 + move.from_peg)}.`);
         }
 
         this.currentMoveIndex--;
@@ -723,6 +754,7 @@ class HanoiGameClient {
             start_time: new Date(new Date() - this.visualTimeElapsed * 1000).toISOString(),
             end_time: new Date().toISOString(),
             total_moves: this.moveCount,
+            compute_time_ms: this.solverComputeTime || 0.0,
             moves: this.visualMoves.map(m => ({ from_peg: m.from_peg, to_peg: m.to_peg }))
         };
 
@@ -875,6 +907,82 @@ class HanoiGameClient {
         `;
         
         this.qRewardSvgChart.innerHTML = svg;
+    }
+
+    animateMove(from, to, diskSize, updateCallback) {
+        const fromStack = document.getElementById(`stack-${from}`);
+        let diskEl = null;
+        if (fromStack) {
+            diskEl = fromStack.querySelector(`[data-disk-size="${diskSize}"]`);
+        }
+        
+        let startRect = null;
+        if (diskEl) {
+            startRect = diskEl.getBoundingClientRect();
+        }
+        
+        // Update pegs state and rebuild board
+        updateCallback();
+        this.renderBoard();
+        
+        if (startRect) {
+            const targetDiskEl = document.querySelector(`[data-disk-size="${diskSize}"]`);
+            if (targetDiskEl) {
+                const endRect = targetDiskEl.getBoundingClientRect();
+                const dx = startRect.left - endRect.left;
+                const dy = startRect.top - endRect.top;
+                
+                // FLIP Invert: temporarily position disk back at starting location without transition
+                targetDiskEl.style.transform = `translate(${dx}px, ${dy}px)`;
+                targetDiskEl.style.transition = 'none';
+                
+                // Force a layout reflow so the browser registers the non-transitioned style
+                targetDiskEl.offsetHeight;
+                
+                // FLIP Play: animate the disk sliding back to its target position
+                targetDiskEl.style.transition = 'transform 350ms cubic-bezier(0.25, 1, 0.5, 1)';
+                targetDiskEl.style.transform = 'translate(0, 0)';
+                
+                // Clean up transition styles once animation ends
+                setTimeout(() => {
+                    targetDiskEl.style.transition = '';
+                    targetDiskEl.style.transform = '';
+                }, 350);
+            }
+        }
+    }
+
+    announceAria(msg) {
+        const announcer = document.getElementById('ariaAnnouncer');
+        if (announcer) {
+            announcer.textContent = msg;
+        }
+    }
+
+    selectPegAction(pegIndex) {
+        if (this.selectedPeg === null) {
+            if (this.pegs[pegIndex].length > 0) {
+                this.selectedPeg = pegIndex;
+                const topDisk = this.pegs[pegIndex][this.pegs[pegIndex].length - 1];
+                this.announceAria(`Selected disk of size ${topDisk} on Peg ${String.fromCharCode(65 + pegIndex)}. Select target peg.`);
+                this.renderBoard();
+            } else {
+                this.announceAria(`Peg ${String.fromCharCode(65 + pegIndex)} has no disks to select.`);
+            }
+        } else {
+            const from = this.selectedPeg;
+            const to = pegIndex;
+            
+            if (from === to) {
+                this.selectedPeg = null;
+                this.announceAria(`Selection cancelled.`);
+                this.renderBoard();
+            } else {
+                this.attemptMove(from, to);
+                this.selectedPeg = null;
+                this.renderBoard();
+            }
+        }
     }
 }
 
