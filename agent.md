@@ -33,6 +33,7 @@ THe project implements the classic Tower Of Hanoi problem with different approac
 no need to ask for confirmation for non purging data commands.
 Add comments for major architectural details
 The project has to be git maintainable. so do all the needed operations.
+Scoping Rule: The AI agent must confine all search, read, write, and terminal command operations strictly to this subdirectory (/home/navin/work/AI/deepLearning/TowerOfHanoi/). Do not inspect, search, or read files in higher-level directories (like the root /home/navin/work/AI/ or sibling apps) unless explicitly requested.
 
 ## Notes
  Update this file as your project evolves: add new commands, refine style rules, and document conventions as they emerge.
