@@ -1,5 +1,11 @@
 from fastapi import FastAPI
 
+from database import Base, engine
+
+# Create the SQLite database tables on startup
+Base.metadata.create_all(bind=engine)
+
+
 app = FastAPI(title="MyTowerOfHanoi")
 
 
