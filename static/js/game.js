@@ -6,6 +6,8 @@ class HanoiGameClient {
         this.startTime = null;
         this.endTime = null;
         this.timerInterval = null;
+        this.accumulatedSeconds = 0; // for persistence
+        this.lastTickTime = null; // for persistence
         this.selectedPeg = null; // for click-to-move
         this.movesList = []; // list of {from_peg, to_peg}
         this.isPlaying = false;
@@ -146,10 +148,74 @@ class HanoiGameClient {
         });
 
         // Initialize state on page load
-        this.startNewGame();
+        if (!this.loadGameFromStorage()) {
+            this.startNewGame();
+        }
+        
+        // Save on unload
+        window.addEventListener('beforeunload', () => {
+            if (this.isPlaying) {
+                this.saveGameToStorage();
+            }
+        });
+    }
+
+    saveGameToStorage() {
+        if (!this.isPlaying) return;
+        const state = {
+            numDisks: this.numDisks,
+            pegs: this.pegs,
+            moveCount: this.moveCount,
+            movesList: this.movesList,
+            accumulatedSeconds: this.accumulatedSeconds
+        };
+        localStorage.setItem('hanoi_game_state', JSON.stringify(state));
+    }
+
+    loadGameFromStorage() {
+        const saved = localStorage.getItem('hanoi_game_state');
+        if (!saved) return false;
+        try {
+            const state = JSON.parse(saved);
+            this.numDisks = state.numDisks;
+            this.pegs = state.pegs;
+            this.moveCount = state.moveCount;
+            this.movesList = state.movesList;
+            this.accumulatedSeconds = state.accumulatedSeconds;
+
+            // Sync UI
+            this.diskCountSelect.value = this.numDisks;
+            this.moveCounter.textContent = this.moveCount.toString();
+            this.optimalMoves.textContent = (Math.pow(2, this.numDisks) - 1).toString();
+            this.updateEfficiency();
+            
+            const totalSeconds = Math.floor(this.accumulatedSeconds);
+            const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+            this.timeCounter.textContent = `${minutes}:${seconds}`;
+
+            this.gameStatusText.textContent = 'Playing (Resumed)';
+            this.gameStatusText.className = 'text-indigo-400 font-semibold';
+            
+            this.winOverlay.classList.add('opacity-0', 'pointer-events-none');
+            
+            this.isPlaying = true;
+            this.startTime = new Date(); // Reset start time for session API but logic uses accumulated
+            this.renderBoard();
+            this.startTimer();
+            return true;
+        } catch (e) {
+            console.error('Failed to load saved game', e);
+            return false;
+        }
+    }
+
+    clearGameFromStorage() {
+        localStorage.removeItem('hanoi_game_state');
     }
 
     startNewGame() {
+        this.clearGameFromStorage();
         // Clean up visualizer if active
         this.stopVisualization(false);
 
@@ -158,6 +224,8 @@ class HanoiGameClient {
         this.selectedPeg = null;
         this.movesList = [];
         this.endTime = null;
+        this.accumulatedSeconds = 0;
+        this.lastTickTime = null;
         
         // Setup initial disks state on Peg 0
         this.pegs = [
@@ -200,13 +268,18 @@ class HanoiGameClient {
         if (this.timerInterval) {
             clearInterval(this.timerInterval);
         }
+        this.lastTickTime = Date.now();
         this.timerInterval = setInterval(() => {
             if (!this.isPlaying) return;
-            const elapsed = Math.floor((new Date() - this.startTime) / 1000);
-            const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
-            const seconds = (elapsed % 60).toString().padStart(2, '0');
+            const now = Date.now();
+            this.accumulatedSeconds += (now - this.lastTickTime) / 1000;
+            this.lastTickTime = now;
+
+            const totalSeconds = Math.floor(this.accumulatedSeconds);
+            const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const seconds = (totalSeconds % 60).toString().padStart(2, '0');
             this.timeCounter.textContent = `${minutes}:${seconds}`;
-        }, 1000);
+        }, 200); // Check 5 times a second for smoother state accumulation
     }
 
     renderBoard() {
@@ -362,6 +435,8 @@ class HanoiGameClient {
             
             this.announceAria(`Moved disk ${movingDisk} from Peg ${String.fromCharCode(65 + from)} to Peg ${String.fromCharCode(65 + to)}.`);
 
+            this.saveGameToStorage();
+
             if (this.pegs[2].length === this.numDisks) {
                 this.handleWin();
             }
@@ -408,7 +483,13 @@ class HanoiGameClient {
         this.endTime = new Date();
         clearInterval(this.timerInterval);
         
-        const secondsElapsed = Math.floor((this.endTime - this.startTime) / 1000);
+        // Add any remaining fractional seconds from the last tick
+        const now = Date.now();
+        if (this.lastTickTime) {
+            this.accumulatedSeconds += (now - this.lastTickTime) / 1000;
+        }
+        
+        const secondsElapsed = Math.floor(this.accumulatedSeconds);
         
         this.gameStatusText.textContent = 'Winner!';
         this.gameStatusText.className = 'text-emerald-400 font-semibold';
@@ -418,15 +499,20 @@ class HanoiGameClient {
         this.winTime.textContent = secondsElapsed.toString();
         this.winOverlay.classList.remove('opacity-0', 'pointer-events-none');
         
+        this.clearGameFromStorage();
+        
         // Log stats and save to DB
         this.saveRunToDB(secondsElapsed);
     }
 
     async saveRunToDB(secondsElapsed) {
+        // Adjust start time so DB duration exactly matches accumulated seconds
+        const syntheticStartTime = new Date(this.endTime.getTime() - secondsElapsed * 1000);
+
         const payload = {
             num_disks: this.numDisks,
             solver_type: 'manual',
-            start_time: this.startTime.toISOString(),
+            start_time: syntheticStartTime.toISOString(),
             end_time: this.endTime.toISOString(),
             total_moves: this.moveCount,
             moves: this.movesList
