@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-8 sm:py-12">
+
+    <!-- Back link -->
+    <a href="/history" class="inline-flex items-center text-sm text-indigo-400 hover:text-indigo-300 transition mb-6 group">
+        <svg class="h-4 w-4 mr-1.5 transform group-hover:-translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+        Back to History &amp; Origins
+    </a>
+
+    <!-- Page Header -->
+    <div class="bg-slate-900/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-8 shadow-2xl mb-8">
+        <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 bg-clip-text text-transparent mb-3">
+            Scholarly Critique: Origins of the Tower of Hanoi
+        </h1>
+        <p class="text-slate-400 text-sm leading-relaxed max-w-3xl">
+            A fact-based examination of the puzzle's history, the fabricated "Tower of Brahma" legend, and what ancient Indian mathematics <em>actually</em> contributed. This critique separates Orientalist myth from genuine intellectual heritage.
+        </p>
+    </div>
+
+    <div class="space-y-8">
+
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- SECTION 1: Overall Verdict -->
+        <!-- ═══════════════════════════════════════════ -->
+        <section class="bg-slate-900/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 sm:p-8 shadow-xl">
+            <h2 class="text-xl font-bold text-white mb-4 flex items-center">
+                <span class="h-8 w-8 rounded-lg bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center mr-3 shadow-lg shadow-emerald-500/20 text-sm">⚖</span>
+                Overall Verdict
+            </h2>
+            <div class="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-5 text-slate-300 leading-relaxed">
+                <p class="mb-3">The common narrative — <em>"Lucas invented the puzzle, the Indian legend is fake, end of story"</em> — is <strong class="text-emerald-400">largely correct on core facts</strong> but <strong class="text-amber-400">incomplete and misleading</strong> in its framing.</p>
+                <p>The specific "Tower of Brahma" legend is indeed fabricated. However, the <em>mathematical and philosophical concepts</em> Lucas borrowed to construct his myth are <strong class="text-white">genuinely Indian</strong> — rooted in traditions stretching back over two millennia.</p>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- SECTION 2: Claim-by-Claim Analysis -->
+        <!-- ═══════════════════════════════════════════ -->
+        <section class="bg-slate-900/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 sm:p-8 shadow-xl">
+            <h2 class="text-xl font-bold text-white mb-6 flex items-center">
+                <span class="h-8 w-8 rounded-lg bg-gradient-to-tr from-violet-500 to-indigo-500 flex items-center justify-center mr-3 shadow-lg shadow-violet-500/20 text-sm">🔍</span>
+                Claim-by-Claim Analysis
+            </h2>
+
+            <!-- Claim 1 -->
+            <div class="mb-6 last:mb-0">
+                <div class="flex items-start mb-2">
+                    <span class="shrink-0 mt-0.5 mr-2 px-2.5 py-0.5 text-xs font-bold rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">✓ CORRECT</span>
+                    <h3 class="text-lg font-semibold text-white">"Invented by Édouard Lucas in 1883"</h3>
+                </div>
+                <div class="ml-10 text-slate-300 leading-relaxed space-y-3">
+                    <p>This is well-established historical fact. Lucas introduced the puzzle in 1883, marketing it under the pseudonym <strong class="text-indigo-300">"N. Claus de Siam"</strong> — a clever anagram of <strong class="text-indigo-300">"Lucas d'Amiens"</strong> (his hometown). He also cited a fictional affiliation with the <strong class="text-indigo-300">"Collège de Li-Sou-Stian"</strong> — an anagram of <strong class="text-indigo-300">"Lycée Saint-Louis"</strong>, the Parisian school where he taught.</p>
+                    <p>The original packaging was titled <em>La Tour d'Hanoï</em> and marketed as a <em>"Véritable Casse-tête Annamite"</em> (Authentic Annamite Brain Teaser) — leveraging 19th-century European fascination with French Indochina.</p>
+                    <div class="bg-indigo-500/5 border border-indigo-500/20 rounded-lg p-4 text-sm text-indigo-200">
+                        <strong>Why "Hanoi"?</strong> The city of Hanoi, Vietnam, was frequently in French colonial news (France established a protectorate over Tonkin/northern Vietnam in 1882–83). Lucas capitalised on this for exotic appeal. The puzzle has no connection to Vietnam either.
+                    </div>
+                </div>
+            </div>
+
+            <hr class="border-slate-700/50 my-6">
+
+            <!-- Claim 2 -->
+            <div class="mb-6 last:mb-0">
+                <div class="flex items-start mb-2">
+                    <span class="shrink-0 mt-0.5 mr-2 px-2.5 py-0.5 text-xs font-bold rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">⚠ INCOMPLETE</span>
+                    <h3 class="text-lg font-semibold text-white">"Lucas invented the Brahma legend"</h3>
+                </div>
+                <div class="ml-10 text-slate-300 leading-relaxed space-y-3">
+                    <p>The "Tower of Brahma" legend was fabricated by Lucas as a marketing device. <strong class="text-white">Henri de Parville</strong>, a science writer and editor of the journal <em>La Nature</em>, further embellished and popularised this legend in an 1884 article (<em>La Nature</em>, No. 565, March 29, 1884). De Parville also revealed Lucas's true identity behind the pseudonym.</p>
+                    <div class="bg-rose-500/5 border border-rose-500/20 rounded-lg p-4 text-sm text-rose-200">
+                        <strong>No Indian source exists.</strong> There is no mention of such a puzzle, golden disks, diamond needles, or any similar ritual in:
+                        <ul class="list-disc list-inside mt-2 space-y-1 text-slate-300">
+                            <li>Any Hindu scripture (Vedas, Upanishads, Puranas, Itihasas)</li>
+                            <li>The traditions or records of the Kashi Vishwanath Temple, Varanasi</li>
+                            <li>Any ancient or medieval Indian mathematical text</li>
+                        </ul>
+                        <p class="mt-2 text-slate-400">Confirmed by scholars including the authors of <em>The Tower of Hanoi — Myths and Maths</em> (Hinz, Klavžar, et al., Birkhäuser, 2013).</p>
+                    </div>
+                    <p><strong class="text-amber-400">What's missing from the common narrative:</strong> The legend is a textbook example of <strong class="text-white">19th-century Orientalism</strong> — the European tendency to attribute exotic, mystical origins to things to make them seem more profound. Lucas capitalised on a common marketing trope, not reflecting any genuine Indian tradition.</p>
+                </div>
+            </div>
+
+            <hr class="border-slate-700/50 my-6">
+
+            <!-- Claim 3 -->
+            <div>
+                <div class="flex items-start mb-2">
+                    <span class="shrink-0 mt-0.5 mr-2 px-2.5 py-0.5 text-xs font-bold rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">✓ CORRECT</span>
+                    <h3 class="text-lg font-semibold text-white">The Mathematics: 2⁶⁴ − 1 moves ≈ 585 billion years</h3>
+                </div>
+                <div class="ml-10 text-slate-300 leading-relaxed space-y-2">
+                    <p>2⁶⁴ − 1 = <span class="font-mono text-indigo-300">18,446,744,073,709,551,615</span> moves. At 1 move/second ≈ <strong class="text-white">584.5 billion years</strong>. The current estimated age of the universe is ≈ 13.8 billion years.</p>
+                    <p>This means the task would take roughly <strong class="text-amber-300">42 times</strong> the age of the universe — a more precise figure than the original "many times."</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- SECTION 3: The Big Question -->
+        <!-- ═══════════════════════════════════════════ -->
+        <section class="bg-slate-900/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 sm:p-8 shadow-xl">
+            <h2 class="text-xl font-bold text-white mb-4 flex items-center">
+                <span class="h-8 w-8 rounded-lg bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center mr-3 shadow-lg shadow-amber-500/20 text-sm">❓</span>
+                The Big Question: Is the Indian Folklore Entirely Made Up?
+            </h2>
+
+            <div class="grid sm:grid-cols-2 gap-4 mb-4">
+                <div class="bg-rose-500/5 border border-rose-500/20 rounded-xl p-5">
+                    <h3 class="text-sm font-bold text-rose-400 uppercase tracking-wider mb-2">What Is Fabricated</h3>
+                    <p class="text-slate-300 text-sm leading-relaxed">The specific story — 64 golden disks, three diamond needles, Brahmin priests at Kashi Vishwanath, end of universe — is <strong class="text-white">entirely invented</strong> by Lucas (1883) and embellished by Henri de Parville (1884). Zero evidence in any Indian source, ancient or modern, prior to 1883.</p>
+                </div>
+                <div class="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-5">
+                    <h3 class="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-2">What Is Genuinely Indian</h3>
+                    <p class="text-slate-300 text-sm leading-relaxed">The <em>mathematical and philosophical concepts</em> Lucas borrowed are real Indian contributions: exponential arithmetic (2ⁿ), recursive structures, cosmic timescales, and mathematical storytelling — all documented in ancient texts predating Lucas by millennia.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- SECTION 4: What India Actually Contributed -->
+        <!-- ═══════════════════════════════════════════ -->
+        <section class="bg-slate-900/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 sm:p-8 shadow-xl">
+            <h2 class="text-xl font-bold text-white mb-2 flex items-center">
+                <span class="h-8 w-8 rounded-lg bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center mr-3 shadow-lg shadow-orange-500/20 text-sm">📜</span>
+                What India <em>Actually</em> Contributed
+            </h2>
+            <p class="text-slate-400 text-sm mb-6">Ancient Indian texts that contain the genuine mathematical foundations Lucas borrowed from.</p>
+
+            <div class="space-y-6">
+
+                <!-- Panini -->
+                <div class="bg-slate-800/40 border border-slate-700/60 rounded-xl p-5">
+                    <div class="flex items-center mb-3">
+                        <span class="h-7 w-7 rounded-full bg-violet-500/20 text-violet-400 flex items-center justify-center text-xs font-bold mr-3 border border-violet-500/30">1</span>
+                        <h3 class="text-lg font-semibold text-white">Pāṇini's Aṣṭādhyāyī <span class="text-slate-500 text-sm font-normal ml-1">(~5th–4th century BCE)</span></h3>
+                    </div>
+                    <p class="text-slate-300 leading-relaxed text-sm mb-3">
+                        Pāṇini's grammar of Sanskrit (~4,000 <em>sūtras</em>) is the <strong class="text-white">world's earliest known formal system</strong> and is structurally recursive. It uses a technique called <strong class="text-indigo-300">anuvṛtti</strong> (carry-forward), where rules from earlier sūtras apply to subsequent ones — functionally identical to recursive function calls in programming.
+                    </p>
+                    <p class="text-slate-300 leading-relaxed text-sm mb-3">
+                        In 2022, a Cambridge researcher decoded a long-standing meta-rule conflict in the Aṣṭādhyāyī, confirming it is a consistent, functional algorithm.
+                    </p>
+                    <div class="bg-violet-500/5 border border-violet-500/20 rounded-lg p-3 text-xs text-violet-200">
+                        <strong>Relevance:</strong> The Tower of Hanoi is the canonical example of recursion in computer science. The recursive thinking that makes this puzzle elegant has deep roots in Indian intellectual tradition — just not in this specific puzzle.
+                    </div>
+                </div>
+
+                <!-- Pingala -->
+                <div class="bg-slate-800/40 border border-slate-700/60 rounded-xl p-5">
+                    <div class="flex items-center mb-3">
+                        <span class="h-7 w-7 rounded-full bg-violet-500/20 text-violet-400 flex items-center justify-center text-xs font-bold mr-3 border border-violet-500/30">2</span>
+                        <h3 class="text-lg font-semibold text-white">Piṅgala's Chandaḥśāstra <span class="text-slate-500 text-sm font-normal ml-1">(~3rd–2nd century BCE)</span></h3>
+                    </div>
+                    <p class="text-slate-300 leading-relaxed text-sm mb-3">
+                        Piṅgala, analysing Sanskrit poetic metres, classified syllables as <strong class="text-indigo-300">laghu</strong> (light/short = 0) and <strong class="text-indigo-300">guru</strong> (heavy/long = 1), effectively describing a <strong class="text-white">binary numeral system</strong>. His key algorithms:
+                    </p>
+                    <div class="overflow-x-auto mb-3">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="text-left border-b border-slate-600/50">
+                                    <th class="py-2 pr-4 text-indigo-400 font-semibold">Algorithm</th>
+                                    <th class="py-2 pr-4 text-indigo-400 font-semibold">Description</th>
+                                    <th class="py-2 text-indigo-400 font-semibold">Modern Equivalent</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-slate-300">
+                                <tr class="border-b border-slate-700/30">
+                                    <td class="py-2 pr-4 font-mono text-amber-300">Prastāra</td>
+                                    <td class="py-2 pr-4">Generating all possible metrical patterns</td>
+                                    <td class="py-2">Exhaustive enumeration</td>
+                                </tr>
+                                <tr class="border-b border-slate-700/30">
+                                    <td class="py-2 pr-4 font-mono text-amber-300">Saṅkhyā</td>
+                                    <td class="py-2 pr-4">Calculating total count of patterns (= 2ⁿ)</td>
+                                    <td class="py-2">Powers of two</td>
+                                </tr>
+                                <tr class="border-b border-slate-700/30">
+                                    <td class="py-2 pr-4 font-mono text-amber-300">Naṣṭa</td>
+                                    <td class="py-2 pr-4">Finding a pattern from its index</td>
+                                    <td class="py-2">Binary-to-pattern decoding</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 pr-4 font-mono text-amber-300">Uddiṣṭa</td>
+                                    <td class="py-2 pr-4">Finding an index from a pattern</td>
+                                    <td class="py-2">Pattern-to-binary encoding</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-slate-300 leading-relaxed text-sm mb-3">
+                        Piṅgala also described what is now called <strong class="text-white">Meru Prastāra</strong> (Mountain Staircase) — mathematically identical to Pascal's Triangle, predating Blaise Pascal by over <strong class="text-amber-300">1,800 years</strong>. This was further elaborated by <strong class="text-white">Halāyudha</strong> in his 10th-century commentary <em>Mṛtasañjīvanī</em>.
+                    </p>
+                    <div class="bg-violet-500/5 border border-violet-500/20 rounded-lg p-3 text-xs text-violet-200">
+                        <strong>Relevance:</strong> Piṅgala explicitly worked with <strong>2ⁿ calculations</strong> — the exact mathematical structure underlying the Tower of Hanoi solution. Lucas's legend cleverly borrowed the exponential growth concept (2⁶⁴ − 1) that was already part of the Indian mathematical vocabulary.
+                    </div>
+                </div>
+
+                <!-- Surya Siddhanta -->
+                <div class="bg-slate-800/40 border border-slate-700/60 rounded-xl p-5">
+                    <div class="flex items-center mb-3">
+                        <span class="h-7 w-7 rounded-full bg-violet-500/20 text-violet-400 flex items-center justify-center text-xs font-bold mr-3 border border-violet-500/30">3</span>
+                        <h3 class="text-lg font-semibold text-white">Sūrya Siddhānta &amp; Cosmic Time Cycles <span class="text-slate-500 text-sm font-normal ml-1">(ancient, revised ~4th c. CE)</span></h3>
+                    </div>
+                    <p class="text-slate-300 leading-relaxed text-sm mb-3">
+                        Indian cosmology describes time in vast cyclical scales:
+                    </p>
+                    <div class="overflow-x-auto mb-3">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="text-left border-b border-slate-600/50">
+                                    <th class="py-2 pr-4 text-indigo-400 font-semibold">Unit</th>
+                                    <th class="py-2 pr-4 text-indigo-400 font-semibold">Duration</th>
+                                    <th class="py-2 text-indigo-400 font-semibold">Calculation</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-slate-300">
+                                <tr class="border-b border-slate-700/30">
+                                    <td class="py-2 pr-4 font-semibold text-amber-300">Mahāyuga</td>
+                                    <td class="py-2 pr-4">4,320,000 years</td>
+                                    <td class="py-2">Sum of 4 yugas (Satya + Tretā + Dvāpara + Kali)</td>
+                                </tr>
+                                <tr class="border-b border-slate-700/30">
+                                    <td class="py-2 pr-4 font-semibold text-amber-300">Kalpa (Day of Brahmā)</td>
+                                    <td class="py-2 pr-4">4.32 billion years</td>
+                                    <td class="py-2">1,000 Mahāyugas</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2 pr-4 font-semibold text-amber-300">Life of Brahmā</td>
+                                    <td class="py-2 pr-4">311.04 trillion years</td>
+                                    <td class="py-2">100 years of Brahmā</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="bg-violet-500/5 border border-violet-500/20 rounded-lg p-3 text-xs text-violet-200">
+                        <strong>Relevance:</strong> The legend's claim that "the universe would end" after completing the puzzle borrows directly from the Indian concept of <strong>pralaya</strong> (cosmic dissolution at the end of Brahmā's day). The 585-billion-year timescale maps neatly onto the Indian tradition of thinking in <strong>kalpas</strong> and <strong>mahāyugas</strong>. Lucas almost certainly knew about this framework.
+                    </div>
+                </div>
+
+                <!-- Bhaskaracharya -->
+                <div class="bg-slate-800/40 border border-slate-700/60 rounded-xl p-5">
+                    <div class="flex items-center mb-3">
+                        <span class="h-7 w-7 rounded-full bg-violet-500/20 text-violet-400 flex items-center justify-center text-xs font-bold mr-3 border border-violet-500/30">4</span>
+                        <h3 class="text-lg font-semibold text-white">Bhāskarācārya's Līlāvatī <span class="text-slate-500 text-sm font-normal ml-1">(1150 CE)</span></h3>
+                    </div>
+                    <p class="text-slate-300 leading-relaxed text-sm mb-3">
+                        Bhāskara II's <em>Līlāvatī</em> is a foundational text on arithmetic, algebra, and geometry, written in elegant verse. It exemplifies the Indian tradition of <strong class="text-white">mathematical puzzles as pedagogy</strong> — framing complex problems as engaging stories and riddles.
+                    </p>
+                    <div class="bg-violet-500/5 border border-violet-500/20 rounded-lg p-3 text-xs text-violet-200">
+                        <strong>Relevance:</strong> Lucas's strategy of wrapping a mathematical concept in an engaging narrative is <em>exactly</em> what Bhāskarācārya did 700 years earlier. The Indian tradition of mathematical storytelling is genuine — Lucas simply fabricated a <em>fake</em> story in that tradition.
+                    </div>
+                </div>
+
+                <!-- Jain tradition -->
+                <div class="bg-slate-800/40 border border-slate-700/60 rounded-xl p-5">
+                    <div class="flex items-center mb-3">
+                        <span class="h-7 w-7 rounded-full bg-violet-500/20 text-violet-400 flex items-center justify-center text-xs font-bold mr-3 border border-violet-500/30">5</span>
+                        <h3 class="text-lg font-semibold text-white">Jain Mathematical Tradition <span class="text-slate-500 text-sm font-normal ml-1">(c. 6th century BCE onwards)</span></h3>
+                    </div>
+                    <p class="text-slate-300 leading-relaxed text-sm">
+                        Jain mathematicians developed sophisticated classifications of infinity and extremely large numbers (e.g., the concept of <strong class="text-indigo-300">asaṃkhyāta</strong> — innumerable), demonstrating comfort with exponential and trans-finite quantities long before European mathematics engaged with these ideas.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- SECTION 5: Key References -->
+        <!-- ═══════════════════════════════════════════ -->
+        <section class="bg-slate-900/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 sm:p-8 shadow-xl">
+            <h2 class="text-xl font-bold text-white mb-4 flex items-center">
+                <span class="h-8 w-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-blue-500 flex items-center justify-center mr-3 shadow-lg shadow-cyan-500/20 text-sm">📚</span>
+                Scholarly References
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-left border-b border-slate-600/50">
+                            <th class="py-2 pr-4 text-indigo-400 font-semibold">Source</th>
+                            <th class="py-2 text-indigo-400 font-semibold">Relevance</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-slate-300">
+                        <tr class="border-b border-slate-700/30">
+                            <td class="py-3 pr-4 font-medium text-white">Hinz, Klavžar, Milutinović, Petr. <em>The Tower of Hanoi — Myths and Maths</em> (Birkhäuser, 2013)</td>
+                            <td class="py-3">Definitive scholarly analysis confirming legend is fabricated</td>
+                        </tr>
+                        <tr class="border-b border-slate-700/30">
+                            <td class="py-3 pr-4 font-medium text-white">De Parville, H. <em>La Nature</em>, No. 565 (March 29, 1884)</td>
+                            <td class="py-3">The article that popularised and embellished Lucas's legend</td>
+                        </tr>
+                        <tr class="border-b border-slate-700/30">
+                            <td class="py-3 pr-4 font-medium text-white">MacTutor History of Mathematics (st-andrews.ac.uk)</td>
+                            <td class="py-3">Biography of Lucas, anagram and pseudonym details</td>
+                        </tr>
+                        <tr class="border-b border-slate-700/30">
+                            <td class="py-3 pr-4 font-medium text-white">Pāṇini, <em>Aṣṭādhyāyī</em> (~5th–4th c. BCE)</td>
+                            <td class="py-3">World's first formal recursive grammar</td>
+                        </tr>
+                        <tr class="border-b border-slate-700/30">
+                            <td class="py-3 pr-4 font-medium text-white">Piṅgala, <em>Chandaḥśāstra</em> (~3rd–2nd c. BCE)</td>
+                            <td class="py-3">Binary numbers, 2ⁿ calculations, Meru Prastāra</td>
+                        </tr>
+                        <tr class="border-b border-slate-700/30">
+                            <td class="py-3 pr-4 font-medium text-white">Halāyudha, <em>Mṛtasañjīvanī</em> (~10th c. CE)</td>
+                            <td class="py-3">Commentary elaborating Piṅgala's Meru Prastāra (Pascal's Triangle)</td>
+                        </tr>
+                        <tr class="border-b border-slate-700/30">
+                            <td class="py-3 pr-4 font-medium text-white">Bhāskara II, <em>Līlāvatī</em> (1150 CE)</td>
+                            <td class="py-3">Mathematical puzzles as narrative pedagogy</td>
+                        </tr>
+                        <tr class="border-b border-slate-700/30">
+                            <td class="py-3 pr-4 font-medium text-white"><em>Sūrya Siddhānta</em> (ancient, revised ~4th c. CE)</td>
+                            <td class="py-3">Kalpa/Yuga cosmic time cycles</td>
+                        </tr>
+                        <tr class="border-b border-slate-700/30">
+                            <td class="py-3 pr-4 font-medium text-white">StackExchange: History of Science and Mathematics</td>
+                            <td class="py-3">Scholarly discussions confirming no Indian textual source for legend</td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 pr-4 font-medium text-white">Ian Parberry, <em>Active Learning with the Towers of Hanoi</em></td>
+                            <td class="py-3">Pedagogical analysis of the puzzle and recursion</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- SECTION 6: Summary -->
+        <!-- ═══════════════════════════════════════════ -->
+        <section class="bg-gradient-to-br from-indigo-500/10 to-violet-500/10 border border-indigo-500/20 rounded-2xl p-6 sm:p-8 shadow-xl">
+            <h2 class="text-xl font-bold text-white mb-4">In Summary</h2>
+            <div class="text-slate-300 leading-relaxed space-y-3 text-sm">
+                <p>The "Tower of Brahma" at Kashi Vishwanath is a <strong class="text-rose-400">19th-century Orientalist fabrication</strong>. But the story Lucas fabricated was built from <strong class="text-emerald-400">genuine Indian building blocks</strong>:</p>
+                <ul class="space-y-2 ml-4">
+                    <li class="flex items-start">
+                        <span class="text-amber-400 mr-2 mt-0.5">•</span>
+                        <span><strong class="text-white">Piṅgala</strong> gave us <span class="text-indigo-300 font-mono">2ⁿ</span> — the exact maths behind the puzzle</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-amber-400 mr-2 mt-0.5">•</span>
+                        <span><strong class="text-white">Pāṇini</strong> created the world's first recursive formal system</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-amber-400 mr-2 mt-0.5">•</span>
+                        <span><strong class="text-white">Indian cosmology</strong> (Kalpa/Yuga/Pralaya) gave Lucas the "end of universe" motif</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-amber-400 mr-2 mt-0.5">•</span>
+                        <span><strong class="text-white">Bhāskarācārya</strong> established maths-as-storytelling centuries before Lucas</span>
+                    </li>
+                </ul>
+                <p class="mt-4 text-slate-400 italic">The puzzle is French. The legend is fake. But the mathematical soul it draws from is undeniably Indian.</p>
+            </div>
+        </section>
+
+    </div>
+</div>
+{% endblock %}

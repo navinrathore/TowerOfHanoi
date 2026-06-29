@@ -1,7 +1,8 @@
+from __future__ import annotations
 from datetime import datetime
 import json
 import time
-from typing import Any
+from typing import Any, Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse
@@ -30,6 +31,9 @@ with engine.connect() as conn:
     columns = [col["name"] for col in inspector.get_columns("game_runs")]
     if "compute_time_ms" not in columns:
         conn.execute(text("ALTER TABLE game_runs ADD COLUMN compute_time_ms FLOAT"))
+        conn.commit()
+    if "player_name" not in columns:
+        conn.execute(text("ALTER TABLE game_runs ADD COLUMN player_name VARCHAR"))
         conn.commit()
 
 # Seed database if empty and pre-load/pre-train Q-learning agents
@@ -102,12 +106,15 @@ class GameRunBatchCreate(BaseModel):
     solver_type: str = Field(
         ..., max_length=50, description="Solver type (e.g. 'manual')."
     )
+    player_name: Optional[str] = Field(
+        None, max_length=100, description="Name of the player."
+    )
     start_time: datetime = Field(..., description="Timestamp of game start.")
     end_time: datetime = Field(..., description="Timestamp of game completion.")
     total_moves: int = Field(
         ..., ge=0, description="Total number of moves made in the session."
     )
-    compute_time_ms: float | None = Field(
+    compute_time_ms: Optional[float] = Field(
         None, description="Backend compute time in ms if solver-based."
     )
     moves: list[MoveSchema] = Field(
@@ -136,11 +143,12 @@ class GameRunResponse(BaseModel):
     id: int
     num_disks: int
     solver_type: str
+    player_name: Optional[str] = None
     start_time: datetime
-    end_time: datetime | None
+    end_time: Optional[datetime] = None
     total_moves: int
     is_completed: bool
-    compute_time_ms: float | None = None
+    compute_time_ms: Optional[float] = None
     moves: list[GameMoveResponse] = []
 
 
@@ -231,6 +239,18 @@ async def read_dashboard(
     return templates.TemplateResponse(request, "index.html", {"runs": runs})
 
 
+@app.get("/history", response_class=HTMLResponse)
+async def read_history(request: Request) -> HTMLResponse:
+    """Render the History and Origins page."""
+    return templates.TemplateResponse(request, "history.html", {})
+
+
+@app.get("/critique", response_class=HTMLResponse)
+async def read_critique(request: Request) -> HTMLResponse:
+    """Render the scholarly critique of the Tower of Hanoi's origins."""
+    return templates.TemplateResponse(request, "critique.html", {})
+
+
 @app.get("/dashboard", response_class=HTMLResponse)
 async def read_dashboard_analytics(
     request: Request,
@@ -292,6 +312,7 @@ async def create_completed_run(
         db_run = models.GameRun(
             num_disks=payload.num_disks,
             solver_type=payload.solver_type,
+            player_name=payload.player_name,
             start_time=payload.start_time,
             end_time=payload.end_time,
             total_moves=payload.total_moves,
@@ -377,7 +398,7 @@ async def get_solve_search(
     num_disks: int = Query(
         ..., ge=3, le=8, description="Number of disks (3 to 8 inclusive)."
     ),
-    state: str | None = Query(
+    state: Optional[str] = Query(
         None,
         description="Optional current state encoded as JSON (e.g. [[3,2,1],[],[]])",
     ),
@@ -487,7 +508,7 @@ async def get_solve_qlearning(
     num_disks: int = Query(
         ..., ge=3, le=8, description="Number of disks (3 to 8 inclusive)."
     ),
-    state: str | None = Query(
+    state: Optional[str] = Query(
         None,
         description="Optional current state encoded as JSON (e.g. [[3,2,1],[],[]])",
     ),

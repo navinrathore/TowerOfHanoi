@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <div class="bg-slate-900/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-8 shadow-2xl">
+        <h1 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent mb-6">History & Origins</h1>
+        
+        <div class="space-y-6 text-slate-300 leading-relaxed">
+            <section>
+                <h2 class="text-xl font-bold text-white mb-2">The True Origin</h2>
+                <p>Despite the exotic names associated with it, the Tower of Hanoi puzzle was actually invented by the French mathematician <strong>Édouard Lucas</strong> in 1883. It was introduced to the world as a mathematical recreation to demonstrate properties of recursion and exponential growth.</p>
+            </section>
+            
+            <section>
+                <h2 class="text-xl font-bold text-white mb-2">The Fictional Legend: Tower of Brahma</h2>
+                <p>To market the puzzle and make it more mysterious, Lucas invented an elaborate myth. He claimed that the puzzle originated in the great temple of <strong>Brahma</strong> in Kashi (Varanasi), India.</p>
+                <div class="bg-slate-800/50 p-5 rounded-xl border border-indigo-500/30 mt-4 mb-4 italic text-indigo-200 shadow-inner">
+                    "According to the legend, Brahmin priests were tasked with moving a stack of 64 golden disks across three diamond needles. The prophecy stated that once they completed this task, the temple would crumble into dust and the universe would end."
+                </div>
+                <p class="text-sm text-slate-400">Mathematically, completing a 64-disk puzzle optimally would take \(2^{64} - 1\) moves. At a rate of one move per second, this corresponds to roughly 585 billion years—many times the current age of the universe!</p>
+            </section>
+            
+            <section>
+                <h2 class="text-xl font-bold text-white mb-2">The Connection to Hanoi City</h2>
+                <p>The game has absolutely <strong>no historical or cultural connection</strong> to the real city of Hanoi, Vietnam.</p>
+                <p class="mt-3">In the 1880s, France was heavily involved in colonization across Southeast Asia (including Tonkin/Vietnam). Lucas used the name "Hanoi" purely for 19th-century exotic marketing, to give the puzzle a mysterious, Far Eastern flair that would capture the public's imagination. Initially, it was even marketed under the pseudonym "N. Claus de Siam" (an anagram of "Lucas d'Amiens").</p>
+            </section>
+
+            <section>
+                <h2 class="text-xl font-bold text-white mb-2">Modern-Day Hanoi</h2>
+                <p>Today, Hanoi is the vibrant, bustling capital city of Vietnam known for its centuries-old architecture, rich culture, and beautiful lakes. However, you will find no ancient artifacts, temples, or historical traditions related to the Tower of Hanoi puzzle there. The puzzle remains purely a mathematical creation with a legendary marketing backstory.</p>
+            </section>
+        </div>
+    </div>
+
+    <!-- Scholarly Critique Link Card -->
+    <div class="mt-8 bg-gradient-to-br from-amber-500/10 via-orange-500/10 to-rose-500/10 border border-amber-500/20 rounded-2xl p-6 sm:p-8 shadow-2xl hover:border-amber-500/40 transition-colors duration-300 group">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-bold text-white mb-2 flex items-center">
+                    <span class="h-8 w-8 rounded-lg bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center mr-3 shadow-lg shadow-amber-500/20 text-sm">📜</span>
+                    Scholarly Critique: Fact vs. Fiction
+                </h2>
+                <p class="text-slate-400 text-sm leading-relaxed max-w-xl">
+                    A deep-dive into what Lucas fabricated, what he borrowed from genuine Indian mathematics
+                    (Pāṇini, Piṅgala, Bhāskarācārya, Sūrya Siddhānta), and the 19th-century Orientalist context.
+                    Includes references to ancient Indian texts and scholarly sources.
+                </p>
+            </div>
+            <a href="/critique"
+               class="shrink-0 inline-flex items-center px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 hover:scale-105 transform transition-all duration-200">
+                Read the Full Critique
+                <svg class="h-4 w-4 ml-2 transform group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
