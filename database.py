@@ -3,7 +3,7 @@ from collections.abc import Generator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
-DATABASE_URL = "sqlite:///hanoi.db"
+DATABASE_URL = "sqlite:///artefacts/hanoi.db"
 
 # connect_args={"check_same_thread": False} is required for SQLite threads
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})

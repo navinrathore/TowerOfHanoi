@@ -27,6 +27,7 @@ class HanoiGameClient {
 
         // Element bindings
         this.diskCountSelect = document.getElementById('diskCount');
+        this.playerNameInput = document.getElementById('playerNameInput');
         this.startGameBtn = document.getElementById('startGameBtn');
         this.moveCounter = document.getElementById('moveCounter');
         this.optimalMoves = document.getElementById('optimalMoves');
@@ -146,6 +147,17 @@ class HanoiGameClient {
                 this.selectPegAction(2);
             }
         });
+
+        // Setup player name
+        if (this.playerNameInput) {
+            const savedName = localStorage.getItem('hanoi_player_name');
+            if (savedName) {
+                this.playerNameInput.value = savedName;
+            }
+            this.playerNameInput.addEventListener('change', () => {
+                localStorage.setItem('hanoi_player_name', this.playerNameInput.value.trim());
+            });
+        }
 
         // Initialize state on page load
         if (!this.loadGameFromStorage()) {
@@ -508,10 +520,12 @@ class HanoiGameClient {
     async saveRunToDB(secondsElapsed) {
         // Adjust start time so DB duration exactly matches accumulated seconds
         const syntheticStartTime = new Date(this.endTime.getTime() - secondsElapsed * 1000);
+        const pName = this.playerNameInput ? (this.playerNameInput.value.trim() || null) : null;
 
         const payload = {
             num_disks: this.numDisks,
             solver_type: 'manual',
+            player_name: pName,
             start_time: syntheticStartTime.toISOString(),
             end_time: this.endTime.toISOString(),
             total_moves: this.moveCount,
@@ -569,7 +583,9 @@ class HanoiGameClient {
             const row = document.createElement('tr');
             row.className = 'hover:bg-slate-800/30 transition-colors duration-150';
             row.innerHTML = `
-                <td class="px-3 py-3 whitespace-nowrap text-sm font-semibold text-slate-300">#${run.id}</td>
+                <td class="px-3 py-3 whitespace-nowrap text-sm font-semibold text-slate-300">
+                    #${run.id} ${run.player_name ? `<span class="text-xs text-slate-500 font-normal ml-1">(${run.player_name})</span>` : ''}
+                </td>
                 <td class="px-3 py-3 whitespace-nowrap text-sm text-indigo-400 text-center font-bold">${run.num_disks}</td>
                 <td class="px-3 py-3 whitespace-nowrap text-sm text-slate-300 text-center font-mono font-medium">${run.total_moves}</td>
                 <td class="px-3 py-3 whitespace-nowrap text-sm text-slate-400 text-right font-mono">${elapsedSeconds}s</td>

@@ -1,3 +1,4 @@
+from __future__ import annotations
 import heapq
 
 
@@ -47,8 +48,10 @@ def compute_hanoi_distance(
     return get_dist(num_disks, target_peg)
 
 
+from typing import Optional
+
 def solve_search(
-    num_disks: int, start_state: tuple[tuple[int, ...], ...] | None = None
+    num_disks: int, start_state: Optional[tuple[tuple[int, ...], ...]] = None
 ) -> list[dict[str, int]]:
     """Solve the Tower of Hanoi problem using A* pathfinding from any start state.
 

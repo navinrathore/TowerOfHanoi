@@ -1,5 +1,5 @@
 from collections.abc import Generator
-from datetime import UTC, datetime, timedelta
+from datetime import timezone, datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
@@ -58,7 +58,7 @@ def test_read_dashboard(client: TestClient) -> None:
 
 def test_create_completed_run_batch(client: TestClient, db_session: Session) -> None:
     """Verify that a completed game run with moves can be successfully batch logged."""
-    start_time = datetime.now(UTC)
+    start_time = datetime.now(timezone.utc)
     end_time = start_time + timedelta(seconds=12)
 
     payload = {
@@ -96,7 +96,7 @@ def test_create_completed_run_batch(client: TestClient, db_session: Session) -> 
 
 def test_create_run_validation_errors(client: TestClient) -> None:
     """Verify that API validates payload constraints (disk count, peg index bounds)."""
-    start_time = datetime.now(UTC)
+    start_time = datetime.now(timezone.utc)
     end_time = start_time + timedelta(seconds=5)
 
     # Disk count out of range (lower bound 3)
@@ -147,8 +147,8 @@ def test_get_recent_runs(client: TestClient, db_session: Session) -> None:
     run = models.GameRun(
         num_disks=5,
         solver_type="manual",
-        start_time=datetime.now(UTC),
-        end_time=datetime.now(UTC),
+        start_time=datetime.now(timezone.utc),
+        end_time=datetime.now(timezone.utc),
         total_moves=31,
         is_completed=True,
     )

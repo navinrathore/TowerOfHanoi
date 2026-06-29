@@ -1,7 +1,10 @@
-from datetime import UTC, datetime
+from __future__ import annotations
+from datetime import timezone, datetime
 import json
 
 from sqlalchemy import func, select
+from typing import Optional
+
 from sqlalchemy.orm import Session
 
 import models
@@ -27,7 +30,7 @@ def create_game_run(db: Session, num_disks: int, solver_type: str) -> models.Gam
     db_run = models.GameRun(
         num_disks=num_disks,
         solver_type=solver_type,
-        start_time=datetime.now(UTC),
+        start_time=datetime.now(timezone.utc),
         total_moves=0,
         is_completed=False,
     )
@@ -72,7 +75,7 @@ def add_game_move(
         move_number=move_number,
         from_peg=from_peg,
         to_peg=to_peg,
-        timestamp=datetime.now(UTC),
+        timestamp=datetime.now(timezone.utc),
     )
     db.add(db_move)
     db.commit()
@@ -82,7 +85,7 @@ def add_game_move(
 
 def complete_game_run(
     db: Session, game_run_id: int, total_moves: int
-) -> models.GameRun | None:
+) -> Optional[models.GameRun]:
     """Mark a game run as completed, updating end time and total moves.
 
     Args:
@@ -95,7 +98,7 @@ def complete_game_run(
     """
     db_run = db.get(models.GameRun, game_run_id)
     if db_run:
-        db_run.end_time = datetime.now(UTC)
+        db_run.end_time = datetime.now(timezone.utc)
         db_run.total_moves = total_moves
         db_run.is_completed = True
         db.commit()
@@ -103,7 +106,7 @@ def complete_game_run(
     return db_run
 
 
-def get_game_run(db: Session, game_run_id: int) -> models.GameRun | None:
+def get_game_run(db: Session, game_run_id: int) -> Optional[models.GameRun]:
     """Retrieve a single game run by its ID.
 
     Args:
@@ -231,7 +234,7 @@ def save_training_run(
         final_success_rate=final_success_rate,
         metrics_json=json.dumps(metrics),
         q_table_json=json.dumps(q_table_serializable),
-        timestamp=datetime.now(UTC),
+        timestamp=datetime.now(timezone.utc),
     )
     db.add(db_run)
     db.commit()
@@ -239,7 +242,7 @@ def save_training_run(
     return db_run
 
 
-def get_latest_training_run(db: Session, num_disks: int) -> models.QLearningTrainingRun | None:
+def get_latest_training_run(db: Session, num_disks: int) -> Optional[models.QLearningTrainingRun]:
     """Retrieve the most recent Q-learning training run for a given disk count."""
     stmt = (
         select(models.QLearningTrainingRun)
@@ -259,7 +262,7 @@ def seed_database_if_empty(db: Session) -> None:
     import random
     from datetime import timedelta
 
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
 
     # 1. Manual completions
     # 3 Disks (Optimal: 7 moves)

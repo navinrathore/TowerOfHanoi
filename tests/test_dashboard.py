@@ -1,5 +1,5 @@
 from collections.abc import Generator
-from datetime import UTC, datetime, timedelta
+from datetime import timezone, datetime, timedelta
 import json
 
 import pytest
@@ -68,7 +68,7 @@ def test_seed_database_if_empty(db_session: Session) -> None:
 def test_get_fastest_runs(db_session: Session) -> None:
     """Verify that get_fastest_runs correctly filters and sorts manual completions."""
     # Seed custom runs
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
     run1 = models.GameRun(
         num_disks=3,
         solver_type="manual",
@@ -105,7 +105,7 @@ def test_get_fastest_runs(db_session: Session) -> None:
 
 def test_get_solver_comparison(db_session: Session) -> None:
     """Verify that get_solver_comparison groups and averages runs correctly."""
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
     r1 = models.GameRun(
         num_disks=3,
         solver_type="recursive",

@@ -1,13 +1,13 @@
 import random
 import time
-from typing import Any
+from typing import Any, Union
 
 # Directed move actions (from_peg, to_peg)
 ACTIONS = [(0, 1), (0, 2), (1, 0), (1, 2), (2, 0), (2, 1)]
 
 
 def state_to_string(
-    pegs: list[list[int]] | tuple[tuple[int, ...], ...], num_disks: int
+    pegs: Union[list[list[int]], tuple[tuple[int, ...], ...]], num_disks: int
 ) -> str:
     """Convert a Hanoi peg state representation to a compact string.
 

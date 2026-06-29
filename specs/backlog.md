@@ -56,3 +56,12 @@ This document tracks future feature enhancements, design iterations, and databas
 
 - **F1. Audio/Haptic Feedback**:
   - Add optional click/whoosh sound effects or haptic visual feedback on peg placement to enhance the tactile feel of the drag-and-drop gameplay.
+
+## G. Educational & Lore Content
+
+- **G1. History and Origins Page**:
+  - Add a dedicated page on the web interface detailing the history and backstory of the Tower of Hanoi.
+  - Explain the origins of the game, invented by French mathematician Édouard Lucas in 1883.
+  - Detail the fictional "Indian connection"—the mythical legend of the "Tower of Brahma" in a temple in Kashi (Varanasi), India, where Brahmin priests are supposedly moving 64 golden disks, whose completion would signal the end of the universe.
+  - Clarify the relationship with the actual city of Hanoi, Vietnam: Explain that the game has no historical or cultural connection to the city, and the name "Hanoi" was simply used for 19th-century exotic marketing.
+  - Briefly describe modern-day Hanoi to show the contrast and confirm there are no temples or artifacts related to the game there.

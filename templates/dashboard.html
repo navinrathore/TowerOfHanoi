@@ -180,7 +180,12 @@
                                 {% if leaderboards[d] %}
                                     {% for run in leaderboards[d] %}
                                     <tr class="hover:bg-slate-800/30 transition-colors duration-150">
-                                        <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-slate-300">#{{ run.id }}</td>
+                                        <td class="px-2 py-3 whitespace-nowrap text-sm font-semibold text-slate-300">
+                                            #{{ run.id }}
+                                            {% if run.player_name %}
+                                                <span class="text-xs text-slate-500 font-normal ml-1">({{ run.player_name }})</span>
+                                            {% endif %}
+                                        </td>
                                         <td class="px-2 py-3 whitespace-nowrap text-sm text-center font-mono {% if run.total_moves == optimal_map[d] %}text-emerald-400 font-bold{% else %}text-slate-300{% endif %}">
                                             {{ run.total_moves }}
                                         </td>
