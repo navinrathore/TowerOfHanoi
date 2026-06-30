@@ -81,6 +81,7 @@ class HanoiGameClient {
         this.trainQBtn = document.getElementById('trainQBtn');
         this.qTrainingStatus = document.getElementById('qTrainingStatus');
         this.qTrainingStatusText = document.getElementById('qTrainingStatusText');
+        this.qTrainingBar = document.getElementById('qTrainingBar');
         this.qMetricsContainer = document.getElementById('qMetricsContainer');
         this.qTrainTimeVal = document.getElementById('qTrainTimeVal');
         this.qTrainSuccessVal = document.getElementById('qTrainSuccessVal');
@@ -949,7 +950,12 @@ class HanoiGameClient {
         this.trainQBtn.classList.add('opacity-50', 'cursor-not-allowed');
         this.qTrainingStatus.classList.remove('hidden');
         this.qMetricsContainer.classList.add('hidden');
-        this.qTrainingStatusText.textContent = "Training agent...";
+        this.qTrainingStatusText.textContent = "Initiating agent...";
+        if (this.qTrainingBar) {
+            this.qTrainingBar.style.width = '0%';
+            this.qTrainingBar.classList.remove('bg-rose-500', 'animate-pulse');
+            this.qTrainingBar.classList.add('bg-violet-500');
+        }
 
         const payload = {
             num_disks: this.numDisks,
@@ -969,26 +975,72 @@ class HanoiGameClient {
             });
 
             if (response.ok) {
-                const data = await response.json();
-                this.qTrainingStatus.classList.add('hidden');
-                
-                // Show metrics
-                this.qMetricsContainer.classList.remove('hidden');
-                this.qTrainTimeVal.textContent = `${data.training_time_ms.toFixed(0)}ms`;
-                this.qTrainSuccessVal.textContent = `${(data.final_success_rate * 100).toFixed(0)}%`;
-                
-                // Draw chart
-                this.drawRewardChart(data.metrics);
+                const initData = await response.json();
+                const taskId = initData.task_id;
+                this.qTrainingStatusText.textContent = "Training agent... 0%";
+
+                // Start polling status
+                const pollInterval = setInterval(async () => {
+                    try {
+                        const statusResponse = await fetch(`/api/solve/qlearning/train/status/${taskId}`);
+                        if (statusResponse.ok) {
+                            const statusData = await statusResponse.json();
+                            const progressPercent = Math.round(statusData.progress * 100);
+                            
+                            this.qTrainingStatusText.textContent = `Training agent... ${progressPercent}%`;
+                            if (this.qTrainingBar) {
+                                this.qTrainingBar.style.width = `${progressPercent}%`;
+                            }
+
+                            if (statusData.status === 'COMPLETED') {
+                                clearInterval(pollInterval);
+                                this.qTrainingStatus.classList.add('hidden');
+                                
+                                // Show metrics
+                                this.qMetricsContainer.classList.remove('hidden');
+                                this.qTrainTimeVal.textContent = `${statusData.results.training_time_ms.toFixed(0)}ms`;
+                                this.qTrainSuccessVal.textContent = `${(statusData.results.final_success_rate * 100).toFixed(0)}%`;
+                                
+                                // Draw chart
+                                this.drawRewardChart(statusData.results.metrics);
+
+                                // Re-enable buttons
+                                this.trainQBtn.disabled = false;
+                                this.trainQBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                            } else if (statusData.status === 'FAILED') {
+                                clearInterval(pollInterval);
+                                this.showError(`Training failed: ${statusData.error}`);
+                                this.qTrainingStatus.classList.add('hidden');
+                                this.trainQBtn.disabled = false;
+                                this.trainQBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                            }
+                        } else {
+                            clearInterval(pollInterval);
+                            this.showError('Error reading training status from server.');
+                            this.qTrainingStatus.classList.add('hidden');
+                            this.trainQBtn.disabled = false;
+                            this.trainQBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        }
+                    } catch (pollErr) {
+                        clearInterval(pollInterval);
+                        console.error('Polling error:', pollErr);
+                        this.showError('Network error checking training status.');
+                        this.qTrainingStatus.classList.add('hidden');
+                        this.trainQBtn.disabled = false;
+                        this.trainQBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    }
+                }, 500);
             } else {
                 const errText = await response.text();
-                this.showError(`Training failed: ${errText}`);
+                this.showError(`Training trigger failed: ${errText}`);
                 this.qTrainingStatus.classList.add('hidden');
+                this.trainQBtn.disabled = false;
+                this.trainQBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             }
         } catch (err) {
             console.error('Error training agent:', err);
             this.showError('Network error training agent.');
             this.qTrainingStatus.classList.add('hidden');
-        } finally {
             this.trainQBtn.disabled = false;
             this.trainQBtn.classList.remove('opacity-50', 'cursor-not-allowed');
         }

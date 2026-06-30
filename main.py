@@ -4,7 +4,8 @@ import json
 import time
 from typing import Any, Optional
 
-from fastapi import Depends, FastAPI, HTTPException, Query, Request
+import uuid
+from fastapi import Depends, FastAPI, HTTPException, Query, Request, BackgroundTasks
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -21,6 +22,57 @@ from solvers.search import solve_search
 
 # In-memory store for trained Q-learning agents
 TRAINED_Q_TABLES: dict[int, QLearningAgent] = {}
+
+# In-memory store for Q-learning background training tasks progress
+TRAINING_STATUS: dict[str, dict] = {}
+
+
+def run_training_background(
+    task_id: str,
+    num_disks: int,
+    episodes: int,
+    alpha: float,
+    gamma: float,
+    epsilon: float,
+) -> None:
+    """Run Q-learning training in the background and update progress status."""
+    TRAINING_STATUS[task_id]["status"] = "RUNNING"
+    try:
+        agent = QLearningAgent(num_disks)
+
+        def progress_callback(progress: float) -> None:
+            TRAINING_STATUS[task_id]["progress"] = progress
+
+        results = agent.train(
+            episodes=episodes,
+            alpha=alpha,
+            gamma=gamma,
+            epsilon=epsilon,
+            progress_callback=progress_callback,
+        )
+
+        # Save to database inside task thread context
+        with SessionLocal() as db:
+            crud.save_training_run(
+                db,
+                num_disks=num_disks,
+                episodes=episodes,
+                alpha=alpha,
+                gamma=gamma,
+                epsilon=epsilon,
+                training_time_ms=results["training_time_ms"],
+                final_success_rate=results["final_success_rate"],
+                metrics=results["metrics"],
+                q_table=agent.q_table,
+            )
+
+        TRAINED_Q_TABLES[num_disks] = agent
+        TRAINING_STATUS[task_id]["progress"] = 1.0
+        TRAINING_STATUS[task_id]["status"] = "COMPLETED"
+        TRAINING_STATUS[task_id]["results"] = results
+    except Exception as e:
+        TRAINING_STATUS[task_id]["status"] = "FAILED"
+        TRAINING_STATUS[task_id]["error"] = str(e)
 
 # Create the SQLite database tables on startup
 Base.metadata.create_all(bind=engine)
@@ -214,6 +266,23 @@ class QLearningTrainResponse(BaseModel):
     training_time_ms: float
     final_success_rate: float
     metrics: QLearningMetrics
+
+
+class QLearningTrainStartResponse(BaseModel):
+    """Response schema returned when Q-agent training starts in the background."""
+
+    task_id: str
+    status: str
+
+
+class QLearningTrainStatusResponse(BaseModel):
+    """Response schema for checking background training status."""
+
+    task_id: str
+    status: str
+    progress: float
+    results: Optional[QLearningTrainResponse] = None
+    error: Optional[str] = None
 
 
 class QLearningLastTrainingResponse(BaseModel):
@@ -445,36 +514,45 @@ async def get_solve_search(
     }
 
 
-@app.post("/api/solve/qlearning/train", response_model=QLearningTrainResponse)
+@app.post("/api/solve/qlearning/train", response_model=QLearningTrainStartResponse)
 async def post_train_qlearning(
     payload: QLearningTrainRequest,
-    db: Session = Depends(get_db),  # noqa: B008
-) -> dict[str, Any]:
-    """Train a tabular Q-learning agent and persist the training run."""
-    agent = QLearningAgent(payload.num_disks)
-    results = agent.train(
-        episodes=payload.episodes,
-        alpha=payload.alpha,
-        gamma=payload.gamma,
-        epsilon=payload.epsilon,
+    background_tasks: BackgroundTasks,
+) -> dict[str, str]:
+    """Initiate tabular Q-learning agent training in the background."""
+    task_id = str(uuid.uuid4())
+    TRAINING_STATUS[task_id] = {
+        "task_id": task_id,
+        "status": "PENDING",
+        "progress": 0.0,
+        "results": None,
+        "error": None,
+    }
+    background_tasks.add_task(
+        run_training_background,
+        task_id,
+        payload.num_disks,
+        payload.episodes,
+        payload.alpha,
+        payload.gamma,
+        payload.epsilon,
     )
-    TRAINED_Q_TABLES[payload.num_disks] = agent
+    return {"task_id": task_id, "status": "PENDING"}
 
-    # Save to SQLite database
-    crud.save_training_run(
-        db,
-        num_disks=payload.num_disks,
-        episodes=payload.episodes,
-        alpha=payload.alpha,
-        gamma=payload.gamma,
-        epsilon=payload.epsilon,
-        training_time_ms=results["training_time_ms"],
-        final_success_rate=results["final_success_rate"],
-        metrics=results["metrics"],
-        q_table=agent.q_table,
-    )
 
-    return results
+@app.get(
+    "/api/solve/qlearning/train/status/{task_id}",
+    response_model=QLearningTrainStatusResponse,
+)
+async def get_qlearning_train_status(task_id: str) -> dict[str, Any]:
+    """Retrieve the status and progress of a background Q-learning training run."""
+    status_info = TRAINING_STATUS.get(task_id)
+    if not status_info:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Training task {task_id} not found.",
+        )
+    return status_info
 
 
 @app.get(

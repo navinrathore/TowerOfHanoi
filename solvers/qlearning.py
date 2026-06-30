@@ -1,6 +1,6 @@
 import random
 import time
-from typing import Any, Union
+from typing import Any, Union, Callable, Optional
 
 # Directed move actions (from_peg, to_peg)
 ACTIONS = [(0, 1), (0, 2), (1, 0), (1, 2), (2, 0), (2, 1)]
@@ -110,6 +110,7 @@ class QLearningAgent:
         gamma: float = 0.9,
         epsilon: float = 0.2,
         min_epsilon: float = 0.01,
+        progress_callback: Optional[Callable[[float], None]] = None,
     ) -> dict[str, Any]:
         """Train the Q-agent.
 
@@ -119,6 +120,7 @@ class QLearningAgent:
             gamma: Discount factor.
             epsilon: Starting exploration rate.
             min_epsilon: Minimum exploration rate.
+            progress_callback: Optional callback receiving float progress (0.0 to 1.0).
 
         Returns:
             Dictionary containing metrics and metadata about training progress.
@@ -144,7 +146,7 @@ class QLearningAgent:
         # Maximum steps per episode to prevent endless loops in early exploration
         max_steps = 100 + 25 * self.num_disks
 
-        for _ in range(episodes):
+        for episode in range(episodes):
             state = initial_state
             total_reward = 0.0
             steps = 0
@@ -175,6 +177,10 @@ class QLearningAgent:
             episode_rewards.append(total_reward)
             episode_steps.append(steps)
             episode_success.append(1 if done else 0)
+
+            # Report progress via callback
+            if progress_callback and (episode % max(1, episodes // 100) == 0 or episode == episodes - 1):
+                progress_callback(float(episode + 1) / episodes)
 
         end_time = time.time()
         training_time_ms = (end_time - start_time) * 1000

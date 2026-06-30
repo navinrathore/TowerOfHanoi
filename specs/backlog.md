@@ -23,7 +23,7 @@ This document tracks future feature enhancements, design iterations, and databas
 
 - **B1. Compressed Binary Q-Table Serialization**:
   - Store serialized Q-tables in a compressed binary format (e.g., zlib-compressed BLOBs) rather than raw JSON strings in the SQLite database to prevent DB bloat and improve startup loading performance for larger disk counts (7+ disks).
-- **B2. Asynchronous Q-Agent Training [PLANNED - Phase 10]**:
+- **B2. Asynchronous Q-Agent Training [COMPLETED]**:
   - Run reinforcement learning training sessions asynchronously (using FastAPI `BackgroundTasks` or Celery workers) instead of blocking the main ASGI server thread on large episode sizes.
 - **B3. Formal Database Migration Framework**:
   - Integrate Alembic rather than checking column lists manually with SQLAlchemy inspection to perform safe local database upgrades.

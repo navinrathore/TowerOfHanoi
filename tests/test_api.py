@@ -230,7 +230,7 @@ def test_solve_search_api(client: TestClient) -> None:
 
 def test_qlearning_api_endpoints(client: TestClient) -> None:
     """Verify Q-learning agent training and solve API endpoints."""
-    # 1. Train agent
+    # 1. Train agent in background
     payload = {
         "num_disks": 3,
         "episodes": 200,
@@ -241,10 +241,30 @@ def test_qlearning_api_endpoints(client: TestClient) -> None:
     response_train = client.post("/api/solve/qlearning/train", json=payload)
     assert response_train.status_code == 200
     train_data = response_train.json()
-    assert train_data["num_disks"] == 3
-    assert train_data["episodes"] == 200
-    assert "metrics" in train_data
-    assert len(train_data["metrics"]["avg_rewards"]) > 0
+    assert "task_id" in train_data
+    assert train_data["status"] == "PENDING"
+    
+    task_id = train_data["task_id"]
+    
+    # Poll status endpoint until completed
+    import time
+    max_retries = 50
+    status_data = {}
+    for _ in range(max_retries):
+        response_status = client.get(f"/api/solve/qlearning/train/status/{task_id}")
+        assert response_status.status_code == 200
+        status_data = response_status.json()
+        if status_data["status"] in ("COMPLETED", "FAILED"):
+            break
+        time.sleep(0.05)
+        
+    assert status_data["status"] == "COMPLETED"
+    assert status_data["progress"] == 1.0
+    assert status_data["results"] is not None
+    assert status_data["results"]["num_disks"] == 3
+    assert status_data["results"]["episodes"] == 200
+    assert "metrics" in status_data["results"]
+    assert len(status_data["results"]["metrics"]["avg_rewards"]) > 0
 
     # Invalid training parameter
     payload_bad = {
