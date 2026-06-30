@@ -4,7 +4,7 @@ This document tracks future feature enhancements, design iterations, and databas
 
 ## A. Game Statistics & Historical Tracking
 
-- **A1. Player Names / User Profiles**:
+- **A1. Player Names / User Profiles [PLANNED - Phase 10]**:
   - Add a `player_name` (or `user_id` relation) field to `GameRun` to track who played each game (for leaderboard personalization).
 - **A2. Solver Configurations & Hyperparameters**:
   - Add fields or a JSON column to `GameRun` to record hyperparameters (e.g. training episodes, learning rate `alpha`, discount factor `gamma`, exploration rate `epsilon` for the Q-learning solver; or heuristic type for A* search).
@@ -16,14 +16,14 @@ This document tracks future feature enhancements, design iterations, and databas
   - Transition from batch logging at the end of a game run to real-time live logging of moves (sending a POST request on every valid move) to allow tracing of active in-progress game states.
 - **A6. Interactive Trajectory Replay**:
   - Save computed solver runs (classical, A*, or Q-learning paths) in the database so users can browse historical runs in the dashboard and replay them visually step-by-step.
-- **A7. Local Storage Game State Persistence**:
+- **A7. Local Storage Game State Persistence [PLANNED - Phase 10]**:
   - Store the active manual game state in the browser's localStorage so that users can resume their current game progress after a page refresh or accidental window closure.
 
 ## B. Architectural & Offline Improvements
 
 - **B1. Compressed Binary Q-Table Serialization**:
   - Store serialized Q-tables in a compressed binary format (e.g., zlib-compressed BLOBs) rather than raw JSON strings in the SQLite database to prevent DB bloat and improve startup loading performance for larger disk counts (7+ disks).
-- **B2. Asynchronous Q-Agent Training**:
+- **B2. Asynchronous Q-Agent Training [PLANNED - Phase 10]**:
   - Run reinforcement learning training sessions asynchronously (using FastAPI `BackgroundTasks` or Celery workers) instead of blocking the main ASGI server thread on large episode sizes.
 - **B3. Formal Database Migration Framework**:
   - Integrate Alembic rather than checking column lists manually with SQLAlchemy inspection to perform safe local database upgrades.

@@ -56,3 +56,8 @@ The implementation is broken down into small, iterative, and independently testa
 - Add smooth transitions/animations for disk movements.
 - Make the interface mobile-responsive.
 - Add keyboard accessibility to move disks between rods.
+
+## Phase 10 — Feature Enhancements (Planned)
+- Implement Player Profiles & Leaderboards (Modal prompt on manual win)
+- Implement Browser Local Storage Game Persistence (Resume dialog on load)
+- Implement Asynchronous Q-Learning Training (Background task & HTTP polling)
