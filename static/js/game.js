@@ -44,6 +44,11 @@ class HanoiGameClient {
         this.runsTableBody = document.getElementById('runsTableBody');
         this.boardContainer = document.getElementById('boardContainer');
 
+        // Resume Modal bindings
+        this.resumeGameModal = document.getElementById('resumeGameModal');
+        this.resumeGameBtn = document.getElementById('resumeGameBtn');
+        this.discardGameBtn = document.getElementById('discardGameBtn');
+
         // Solver bindings
         this.solveBtn = document.getElementById('solveBtn');
         this.solverTypeSelect = document.getElementById('solverType');
@@ -160,7 +165,26 @@ class HanoiGameClient {
         }
 
         // Initialize state on page load
-        if (!this.loadGameFromStorage()) {
+        if (localStorage.getItem('hanoi_saved_game')) {
+            if (this.resumeGameModal) {
+                this.resumeGameModal.classList.remove('hidden');
+                
+                this.resumeGameBtn.addEventListener('click', () => {
+                    this.loadGameFromStorage();
+                    this.resumeGameModal.classList.add('hidden');
+                });
+                
+                this.discardGameBtn.addEventListener('click', () => {
+                    this.clearGameFromStorage();
+                    this.startNewGame();
+                    this.resumeGameModal.classList.add('hidden');
+                });
+            } else {
+                if (!this.loadGameFromStorage()) {
+                    this.startNewGame();
+                }
+            }
+        } else {
             this.startNewGame();
         }
         
@@ -181,11 +205,11 @@ class HanoiGameClient {
             movesList: this.movesList,
             accumulatedSeconds: this.accumulatedSeconds
         };
-        localStorage.setItem('hanoi_game_state', JSON.stringify(state));
+        localStorage.setItem('hanoi_saved_game', JSON.stringify(state));
     }
 
     loadGameFromStorage() {
-        const saved = localStorage.getItem('hanoi_game_state');
+        const saved = localStorage.getItem('hanoi_saved_game');
         if (!saved) return false;
         try {
             const state = JSON.parse(saved);
@@ -223,7 +247,7 @@ class HanoiGameClient {
     }
 
     clearGameFromStorage() {
-        localStorage.removeItem('hanoi_game_state');
+        localStorage.removeItem('hanoi_saved_game');
     }
 
     startNewGame() {

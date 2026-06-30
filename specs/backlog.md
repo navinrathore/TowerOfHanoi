@@ -16,7 +16,7 @@ This document tracks future feature enhancements, design iterations, and databas
   - Transition from batch logging at the end of a game run to real-time live logging of moves (sending a POST request on every valid move) to allow tracing of active in-progress game states.
 - **A6. Interactive Trajectory Replay**:
   - Save computed solver runs (classical, A*, or Q-learning paths) in the database so users can browse historical runs in the dashboard and replay them visually step-by-step.
-- **A7. Local Storage Game State Persistence [PLANNED - Phase 10]**:
+- **A7. Local Storage Game State Persistence [COMPLETED]**:
   - Store the active manual game state in the browser's localStorage so that users can resume their current game progress after a page refresh or accidental window closure.
 
 ## B. Architectural & Offline Improvements

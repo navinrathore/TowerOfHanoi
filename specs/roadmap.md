@@ -57,7 +57,7 @@ The implementation is broken down into small, iterative, and independently testa
 - Make the interface mobile-responsive.
 - Add keyboard accessibility to move disks between rods.
 
-## Phase 10 — Feature Enhancements (Planned)
+## Phase 10 — Feature Enhancements (In Progress)
 - Implement Player Profiles & Leaderboards (Modal prompt on manual win)
-- Implement Browser Local Storage Game Persistence (Resume dialog on load)
+- [Completed] Implement Browser Local Storage Game Persistence (Resume dialog on load)
 - Implement Asynchronous Q-Learning Training (Background task & HTTP polling)
