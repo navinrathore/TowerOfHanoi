@@ -77,7 +77,7 @@ run `pytest`, and identify the next phase.
 Before committing, check for duplicate function definitions and run linters.
 
 ## Backlog Management
-Create `specs/backlog.md` during Phase 1. Proactively update at session end.
+Create `specs/backlog.md` during Phase 1. Proactively update at session end. Once any ( or part thereof) is implemented/completed, the status must be updated accordingly. In case the task requires multiple sessions, the status must be updated in the specs/backlog.md file.
 
 ## Post-Project Retrospective
 After the final phase, create `specs/lessons-learnt.md` and commit it.
