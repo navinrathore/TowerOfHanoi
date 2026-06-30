@@ -1,6 +1,9 @@
 # Changelog
 
 ## 2026-06-30
+- feat: implement Phase 10 Group 4 & 5 asynchronous Q-learning background training
+- feat: implement Phase 10 Group 1 & 2 player profiles and score submission modal
+- feat: implement Phase 10 Group 3 local storage resume flow
 - docs: establish Phase 10 specifications and update agent.md with retro guidelines
 
 ## 2026-06-29
