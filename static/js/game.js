@@ -49,6 +49,12 @@ class HanoiGameClient {
         this.resumeGameBtn = document.getElementById('resumeGameBtn');
         this.discardGameBtn = document.getElementById('discardGameBtn');
 
+        // Score Submission Modal bindings
+        this.scoreSubmissionModal = document.getElementById('scoreSubmissionModal');
+        this.modalPlayerNameInput = document.getElementById('modalPlayerNameInput');
+        this.submitScoreBtn = document.getElementById('submitScoreBtn');
+        this.skipScoreBtn = document.getElementById('skipScoreBtn');
+
         // Solver bindings
         this.solveBtn = document.getElementById('solveBtn');
         this.solverTypeSelect = document.getElementById('solverType');
@@ -194,6 +200,25 @@ class HanoiGameClient {
                 this.saveGameToStorage();
             }
         });
+
+        // Setup score submission modal handlers
+        if (this.submitScoreBtn && this.skipScoreBtn) {
+            this.submitScoreBtn.addEventListener('click', () => {
+                const name = this.modalPlayerNameInput.value.trim();
+                if (this.playerNameInput) {
+                    this.playerNameInput.value = name;
+                    localStorage.setItem('hanoi_player_name', name);
+                }
+                const secondsElapsed = Math.floor(this.accumulatedSeconds);
+                this.saveRunToDB(secondsElapsed, name || "Anonymous");
+                this.scoreSubmissionModal.classList.add('hidden');
+            });
+            this.skipScoreBtn.addEventListener('click', () => {
+                const secondsElapsed = Math.floor(this.accumulatedSeconds);
+                this.saveRunToDB(secondsElapsed, "Anonymous");
+                this.scoreSubmissionModal.classList.add('hidden');
+            });
+        }
     }
 
     saveGameToStorage() {
@@ -537,14 +562,21 @@ class HanoiGameClient {
         
         this.clearGameFromStorage();
         
-        // Log stats and save to DB
-        this.saveRunToDB(secondsElapsed);
+        // Open Score Submission Modal
+        if (this.scoreSubmissionModal) {
+            if (this.modalPlayerNameInput && this.playerNameInput) {
+                this.modalPlayerNameInput.value = this.playerNameInput.value;
+            }
+            this.scoreSubmissionModal.classList.remove('hidden');
+        } else {
+            this.saveRunToDB(secondsElapsed);
+        }
     }
 
-    async saveRunToDB(secondsElapsed) {
+    async saveRunToDB(secondsElapsed, playerName = null) {
         // Adjust start time so DB duration exactly matches accumulated seconds
         const syntheticStartTime = new Date(this.endTime.getTime() - secondsElapsed * 1000);
-        const pName = this.playerNameInput ? (this.playerNameInput.value.trim() || null) : null;
+        const pName = playerName ? playerName.trim() : (this.playerNameInput ? (this.playerNameInput.value.trim() || null) : null);
 
         const payload = {
             num_disks: this.numDisks,

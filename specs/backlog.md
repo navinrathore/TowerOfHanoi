@@ -4,7 +4,7 @@ This document tracks future feature enhancements, design iterations, and databas
 
 ## A. Game Statistics & Historical Tracking
 
-- **A1. Player Names / User Profiles [PLANNED - Phase 10]**:
+- **A1. Player Names / User Profiles [COMPLETED]**:
   - Add a `player_name` (or `user_id` relation) field to `GameRun` to track who played each game (for leaderboard personalization).
 - **A2. Solver Configurations & Hyperparameters**:
   - Add fields or a JSON column to `GameRun` to record hyperparameters (e.g. training episodes, learning rate `alpha`, discount factor `gamma`, exploration rate `epsilon` for the Q-learning solver; or heuristic type for A* search).

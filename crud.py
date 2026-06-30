@@ -267,16 +267,17 @@ def seed_database_if_empty(db: Session) -> None:
     # 1. Manual completions
     # 3 Disks (Optimal: 7 moves)
     manual_3_disk_runs = [
-        (7, 10.5),  # optimal, fast
-        (9, 15.2),  # slightly sub-optimal
-        (15, 30.1),  # very sub-optimal
+        (7, 10.5, "Ada Lovelace"),  # optimal, fast
+        (9, 15.2, "Alan Turing"),  # slightly sub-optimal
+        (15, 30.1, "Grace Hopper"),  # very sub-optimal
     ]
-    for total_moves, duration_sec in manual_3_disk_runs:
+    for total_moves, duration_sec, player_name in manual_3_disk_runs:
         start = now - timedelta(hours=2)
         end = start + timedelta(seconds=duration_sec)
         db_run = models.GameRun(
             num_disks=3,
             solver_type="manual",
+            player_name=player_name,
             start_time=start,
             end_time=end,
             total_moves=total_moves,
@@ -287,15 +288,16 @@ def seed_database_if_empty(db: Session) -> None:
 
     # 4 Disks (Optimal: 15 moves)
     manual_4_disk_runs = [
-        (15, 35.8),
-        (21, 62.4),
+        (15, 35.8, "Margaret Hamilton"),
+        (21, 62.4, "Donald Knuth"),
     ]
-    for total_moves, duration_sec in manual_4_disk_runs:
+    for total_moves, duration_sec, player_name in manual_4_disk_runs:
         start = now - timedelta(hours=1)
         end = start + timedelta(seconds=duration_sec)
         db_run = models.GameRun(
             num_disks=4,
             solver_type="manual",
+            player_name=player_name,
             start_time=start,
             end_time=end,
             total_moves=total_moves,
@@ -306,15 +308,16 @@ def seed_database_if_empty(db: Session) -> None:
 
     # 5 Disks (Optimal: 31 moves)
     manual_5_disk_runs = [
-        (31, 85.0),
-        (45, 142.0),
+        (31, 85.0, "Claude Shannon"),
+        (45, 142.0, "Grace Hopper"),
     ]
-    for total_moves, duration_sec in manual_5_disk_runs:
+    for total_moves, duration_sec, player_name in manual_5_disk_runs:
         start = now - timedelta(minutes=30)
         end = start + timedelta(seconds=duration_sec)
         db_run = models.GameRun(
             num_disks=5,
             solver_type="manual",
+            player_name=player_name,
             start_time=start,
             end_time=end,
             total_moves=total_moves,
